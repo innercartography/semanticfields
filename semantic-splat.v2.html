@@ -1,0 +1,3570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEMANTIC FIELD — Meaning Refinement Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #080a0f;
+  --deep: #0d1017;
+  --surface: #131720;
+  --panel: #1a2030;
+  --border: #2a3548;
+  --muted: #3d5068;
+  --dim: #5a7a9a;
+  --soft: #8aabb8;
+  --bright: #c8e4f0;
+  --white: #eef4f8;
+
+  /* Ontology colors */
+  --event:    #e8724a;
+  --concept:  #7eb8e0;
+  --process:  #6bcf9e;
+  --relation: #c99fe8;
+  --artifact: #f0cc6a;
+
+  --glow-event:    0 0 20px rgba(232,114,74,0.4);
+  --glow-concept:  0 0 20px rgba(126,184,224,0.4);
+  --glow-process:  0 0 20px rgba(107,207,158,0.4);
+  --glow-relation: 0 0 20px rgba(201,159,232,0.4);
+  --glow-artifact: 0 0 20px rgba(240,204,106,0.4);
+
+  --ui-font: 'DM Mono', monospace;
+  --display-font: 'Bebas Neue', sans-serif;
+  --body-font: 'Crimson Pro', serif;
+  --mono-font: 'Share Tech Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--void);
+  color: var(--bright);
+  font-family: var(--ui-font);
+}
+
+/* ═══════════════════════════════════════════════════
+   LAYER SYSTEM — z-index architecture
+═══════════════════════════════════════════════════ */
+#layer-scene      { position: fixed; inset: 0; z-index: 1; }
+#layer-splat      { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+#layer-annotations{ position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+#layer-palette    { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+#layer-solari     { position: fixed; inset: 0; z-index: 30; }
+#layer-ui         { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
+#layer-modal      { position: fixed; inset: 0; z-index: 100; display: none; }
+
+/* ═══════════════════════════════════════════════════
+   3D SCENE CANVAS
+═══════════════════════════════════════════════════ */
+#scene-canvas {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════════════
+   TOP NAV
+═══════════════════════════════════════════════════ */
+#top-nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  height: 48px;
+  background: rgba(8,10,15,0.92);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  pointer-events: all;
+}
+
+.nav-logo {
+  font-family: var(--display-font);
+  font-size: 1.4rem;
+  letter-spacing: 0.15em;
+  padding: 0 1.5rem;
+  color: var(--bright);
+  border-right: 1px solid var(--border);
+  height: 100%;
+  display: flex; align-items: center;
+  white-space: nowrap;
+}
+
+.nav-logo span { color: var(--concept); }
+
+.nav-tabs {
+  display: flex; height: 100%;
+}
+
+.nav-tab {
+  padding: 0 1.2rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.5rem;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  user-select: none;
+}
+
+.nav-tab:hover { color: var(--bright); background: rgba(255,255,255,0.03); }
+.nav-tab.active { color: var(--bright); border-bottom-color: var(--concept); }
+.nav-tab .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.6;
+}
+
+.nav-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0 1rem;
+}
+
+.player-tag {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  color: var(--soft);
+  cursor: pointer;
+}
+
+.player-tag input {
+  background: transparent; border: none; outline: none;
+  color: var(--bright); font-family: var(--ui-font);
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  width: 100px;
+}
+
+.score-display {
+  font-size: 0.65rem;
+  color: var(--artifact);
+  letter-spacing: 0.1em;
+}
+
+/* ═══════════════════════════════════════════════════
+   SOLARI BOARD — the lobby/chat interface
+═══════════════════════════════════════════════════ */
+#solari-overlay {
+  position: fixed; inset: 0;
+  background: var(--void);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 35;
+  transition: opacity 0.6s, transform 0.6s;
+}
+
+#solari-overlay.hidden {
+  opacity: 0; pointer-events: none;
+  transform: translateY(-20px);
+}
+
+.solari-title {
+  font-family: var(--display-font);
+  font-size: clamp(3rem, 10vw, 8rem);
+  letter-spacing: 0.3em;
+  color: var(--bright);
+  text-align: center;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.solari-title span { color: var(--concept); }
+
+.solari-subtitle {
+  font-size: 0.55rem;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+/* The flip board */
+.flip-board {
+  width: 90vw;
+  max-width: 900px;
+  min-height: 120px;
+  background: #0a0c10;
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  cursor: text;
+  transition: border-color 0.2s;
+}
+
+.flip-board:hover { border-color: var(--dim); }
+.flip-board.board-focused { border-color: var(--concept); }
+
+/* Typing cursor on the board */
+.board-cursor {
+  display: inline-block;
+  width: 2px; height: 24px;
+  background: var(--concept);
+  vertical-align: middle;
+  margin-left: 3px;
+  animation: cursorBlink 1s step-end infinite;
+}
+
+@keyframes cursorBlink {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+
+.flip-board::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 28px,
+    rgba(42,53,72,0.3) 28px, rgba(42,53,72,0.3) 29px
+  );
+  pointer-events: none;
+}
+
+.flip-row {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  margin-bottom: 4px;
+  min-height: 32px;
+}
+
+.flip-char {
+  width: 22px; height: 30px;
+  background: #0f1218;
+  border: 1px solid #1a2030;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono-font);
+  font-size: 0.85rem;
+  color: var(--bright);
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  transition: border-color 0.2s;
+}
+
+.flip-char.space { background: transparent; border-color: transparent; }
+.flip-char.settled { border-color: var(--muted); }
+.flip-char.selected-word {
+  background: rgba(126,184,224,0.15);
+  border-color: var(--concept);
+  color: var(--concept);
+  cursor: pointer;
+}
+
+.flip-char::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 0; right: 0; height: 1px;
+  background: rgba(200,228,240,0.06);
+}
+
+/* Selectable word highlight */
+.flip-word {
+  display: inline-flex; gap: 4px;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 2px;
+  transition: background 0.2s;
+}
+
+.flip-word:hover .flip-char {
+  background: rgba(126,184,224,0.1);
+  border-color: rgba(126,184,224,0.4);
+}
+
+.flip-word.highlighted .flip-char {
+  background: rgba(126,184,224,0.2);
+  border-color: var(--concept);
+  color: var(--concept);
+}
+
+/* Chat input */
+.solari-input-row {
+  display: flex; gap: 0;
+  width: 90vw; max-width: 900px;
+}
+
+.solari-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-right: none;
+  color: var(--bright);
+  font-family: var(--body-font);
+  font-size: 1.1rem;
+  font-style: italic;
+  padding: 0.8rem 1.2rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.solari-input:focus { border-color: var(--concept); }
+.solari-input::placeholder { color: var(--muted); }
+
+.solari-send {
+  background: var(--concept);
+  color: var(--void);
+  border: none;
+  padding: 0 1.5rem;
+  font-family: var(--display-font);
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.solari-actions {
+  display: flex; gap: 1rem; margin-top: 1.5rem;
+  align-items: center;
+}
+
+.btn-enter-scene {
+  font-family: var(--display-font);
+  font-size: 1.1rem;
+  letter-spacing: 0.15em;
+  padding: 0.7rem 2rem;
+  background: transparent;
+  border: 1px solid var(--bright);
+  color: var(--bright);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-enter-scene:hover {
+  background: var(--bright);
+  color: var(--void);
+}
+
+.btn-upload-splat {
+  font-family: var(--ui-font);
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.2rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--dim);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-upload-splat:hover { border-color: var(--soft); color: var(--soft); }
+
+/* ═══════════════════════════════════════════════════
+   WORD PALETTE — semantic canvas
+═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   PALETTE CANVAS — group color system
+═══════════════════════════════════════════════════ */
+#palette-panel {
+  position: fixed;
+  right: 0; top: 48px; bottom: 0;
+  width: 300px;
+  background: rgba(10,12,16,0.97);
+  border-left: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  pointer-events: all;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+  z-index: 41;
+}
+
+#palette-panel.open { transform: translateX(0); }
+
+.palette-header {
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.palette-title {
+  font-family: var(--display-font);
+  font-size: 1.1rem; letter-spacing: 0.2em; color: var(--bright);
+}
+
+.palette-clear {
+  font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--muted); cursor: pointer; transition: color 0.2s;
+}
+.palette-clear:hover { color: var(--event); }
+
+.palette-close {
+  font-size: 0.8rem; color: var(--muted); cursor: pointer;
+  transition: color 0.2s; line-height: 1;
+}
+.palette-close:hover { color: var(--bright); }
+
+/* Group bar */
+.group-bar {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.group-hint {
+  font-size: 0.45rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 0.5rem;
+  transition: color 0.3s;
+}
+.group-hint.active { color: var(--concept); }
+
+.group-swatches {
+  display: flex; gap: 0.35rem; align-items: center;
+}
+
+.group-swatch {
+  width: 22px; height: 22px;
+  border-radius: 2px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; color: var(--muted);
+}
+.group-swatch:hover { transform: scale(1.2); }
+.group-swatch.active { border-color: white; transform: scale(1.15); }
+
+.group-swatch.g0 { background: var(--surface); border-color: var(--border); color: var(--dim); font-size:0.9rem; }
+.group-swatch.g1 { background: #e8724a44; border-color: #e8724a88; }
+.group-swatch.g2 { background: #7eb8e044; border-color: #7eb8e088; }
+.group-swatch.g3 { background: #6bcf9e44; border-color: #6bcf9e88; }
+.group-swatch.g4 { background: #c99fe844; border-color: #c99fe888; }
+.group-swatch.g5 { background: #f0cc6a44; border-color: #f0cc6a88; }
+
+/* Group label pills */
+.group-labels {
+  display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; min-height: 0;
+}
+
+.group-label-pill {
+  display: flex; align-items: center; gap: 0.3rem;
+  font-size: 0.45rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.15rem 0.45rem; border-radius: 10px; cursor: pointer;
+}
+
+.group-label-input {
+  background: transparent; border: none; outline: none;
+  font-family: var(--ui-font); font-size: 0.45rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  width: 70px; color: inherit;
+}
+
+/* Tokens */
+.palette-canvas {
+  flex: 1;
+  padding: 0.8rem;
+  overflow-y: auto;
+  display: flex; flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0.4rem;
+}
+
+.palette-empty {
+  font-size: 0.6rem; color: var(--muted); line-height: 1.8;
+  letter-spacing: 0.05em; font-style: italic;
+  width: 100%; text-align: center; padding: 1rem 0.5rem;
+}
+
+.palette-token {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.68rem; letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid var(--border);
+  color: var(--soft);
+  background: var(--surface);
+  transition: transform 0.12s, border-color 0.15s, color 0.15s, background 0.15s;
+  animation: tokenIn 0.25s ease;
+  position: relative;
+}
+
+@keyframes tokenIn {
+  from { transform: scale(0.75); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.palette-token:hover { transform: translateY(-1px); }
+.palette-token.selected { outline: 2px solid white; outline-offset: 1px; transform: translateY(-1px); }
+.palette-token.is-phrase { font-style: italic; letter-spacing: 0.02em; }
+
+/* group tint classes — set via JS */
+.palette-token.grp-1 { background: rgba(232,114,74,0.12); border-color: rgba(232,114,74,0.5); color: #e8b09a; }
+.palette-token.grp-2 { background: rgba(126,184,224,0.12); border-color: rgba(126,184,224,0.5); color: #a8d4ee; }
+.palette-token.grp-3 { background: rgba(107,207,158,0.12); border-color: rgba(107,207,158,0.5); color: #96dfc0; }
+.palette-token.grp-4 { background: rgba(201,159,232,0.12); border-color: rgba(201,159,232,0.5); color: #d8bdf0; }
+.palette-token.grp-5 { background: rgba(240,204,106,0.12); border-color: rgba(240,204,106,0.5); color: #f0d890; }
+
+.token-remove {
+  opacity: 0; font-size: 0.65rem; line-height: 1;
+  color: inherit; cursor: pointer; transition: opacity 0.15s;
+}
+.palette-token:hover .token-remove { opacity: 0.6; }
+
+/* Crystallize */
+.btn-crystallize {
+  margin: 0.7rem;
+  padding: 0.7rem;
+  background: linear-gradient(135deg, rgba(126,184,224,0.08), rgba(107,207,158,0.08));
+  border: 1px solid var(--concept);
+  color: var(--bright);
+  font-family: var(--display-font);
+  font-size: 0.95rem; letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  flex-shrink: 0;
+}
+.btn-crystallize:hover {
+  background: linear-gradient(135deg, rgba(126,184,224,0.18), rgba(107,207,158,0.18));
+  box-shadow: var(--glow-concept);
+}
+
+/* ═══════════════════════════════════════════════════
+   3D SCENE LAYER — annotation hotspots
+═══════════════════════════════════════════════════ */
+.annotation-hotspot {
+  position: absolute;
+  pointer-events: all;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.hotspot-ring {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s;
+  animation: pulse-ring 3s ease-in-out infinite;
+  position: relative;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 0.7; }
+  50%       { box-shadow: 0 0 0 8px transparent; opacity: 1; }
+}
+
+.hotspot-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: currentColor;
+}
+
+.hotspot-ring:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 20px currentColor;
+}
+
+.hotspot-label {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: currentColor;
+  background: rgba(8,10,15,0.9);
+  padding: 0.2rem 0.5rem;
+  border: 1px solid currentColor;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+
+.annotation-hotspot:hover .hotspot-label { opacity: 1; }
+
+.hotspot-layer-count {
+  position: absolute;
+  top: -4px; right: -4px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--artifact);
+  color: var(--void);
+  font-size: 0.45rem;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANNOTATION MODAL — the meaning refinement GUI
+═══════════════════════════════════════════════════ */
+#annotation-modal {
+  position: fixed; inset: 0;
+  background: rgba(5,7,12,0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 100;
+}
+
+#annotation-modal.open { display: flex; }
+
+.modal-window {
+  width: min(820px, 95vw);
+  max-height: 90vh;
+  background: var(--deep);
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  animation: modalIn 0.25s ease;
+  position: relative;
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.modal-header {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1rem;
+}
+
+.modal-type-badge {
+  font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid currentColor;
+}
+
+.modal-obj-name {
+  font-family: var(--display-font);
+  font-size: 1.3rem;
+  letter-spacing: 0.1em;
+  flex: 1;
+}
+
+.modal-close {
+  width: 28px; height: 28px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover { border-color: var(--event); color: var(--event); }
+
+/* Polysemy Dial */
+.polysemy-section {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1.5rem;
+}
+
+.dial-label {
+  font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--muted);
+  min-width: 60px;
+}
+
+.polysemy-dial-wrap {
+  display: flex; align-items: center; gap: 0.8rem; flex: 1;
+}
+
+.dial-track {
+  flex: 1; height: 4px;
+  background: var(--surface);
+  border-radius: 2px;
+  position: relative;
+  cursor: pointer;
+}
+
+.dial-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--concept), var(--process));
+  transition: width 0.2s;
+}
+
+.dial-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--bright);
+  border: 2px solid var(--concept);
+  position: absolute;
+  top: 50%; transform: translate(-50%, -50%);
+  cursor: grab;
+  transition: box-shadow 0.2s;
+}
+
+.dial-thumb:hover, .dial-thumb.dragging {
+  box-shadow: 0 0 12px var(--concept);
+}
+
+.dial-value {
+  font-size: 0.65rem; color: var(--concept);
+  min-width: 60px; text-align: right;
+}
+
+.layer-tabs {
+  display: flex; gap: 0.4rem; flex-wrap: wrap;
+}
+
+.layer-tab {
+  font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer;
+  transition: all 0.2s;
+}
+
+.layer-tab.active { border-color: var(--concept); color: var(--concept); }
+.layer-tab.has-content { border-style: solid; }
+.layer-tab:hover { color: var(--soft); }
+
+.layer-tab .layer-dot {
+  display: inline-block;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Modal body — meaning layers */
+.modal-body {
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+
+.meaning-layer {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+}
+
+.meaning-layer.active { display: flex; }
+
+.layer-meaning-text {
+  flex: 1;
+  background: transparent;
+  border: none; outline: none;
+  padding: 1.2rem;
+  color: var(--bright);
+  font-family: var(--body-font);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  resize: none;
+  min-height: 120px;
+}
+
+.layer-meaning-text::placeholder { color: var(--muted); font-style: italic; }
+
+/* Attestation bar */
+.attestation-bar {
+  padding: 0.8rem 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.attest-label {
+  font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--muted); margin-right: 0.4rem;
+}
+
+.attest-btn {
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--dim);
+  cursor: pointer; transition: all 0.2s;
+}
+
+.attest-btn:hover { border-color: currentColor; }
+.attest-affirm:hover  { color: var(--process); border-color: var(--process); }
+.attest-contest:hover { color: var(--event);   border-color: var(--event); }
+.attest-expand:hover  { color: var(--concept); border-color: var(--concept); }
+.attest-ambig:hover   { color: var(--artifact);border-color: var(--artifact); }
+
+.attest-count {
+  font-size: 0.55rem; color: var(--muted);
+  margin-left: 0.2rem;
+}
+
+/* LLM evolution section inside modal */
+.modal-llm {
+  border-top: 1px solid var(--border);
+  padding: 1rem 1.2rem;
+  background: rgba(126,184,224,0.03);
+}
+
+.llm-row {
+  display: flex; gap: 0;
+}
+
+.llm-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border); border-right: none;
+  color: var(--bright);
+  font-family: var(--body-font);
+  font-size: 0.95rem;
+  font-style: italic;
+  padding: 0.6rem 0.9rem;
+  outline: none;
+}
+
+.llm-input:focus { border-color: var(--concept); }
+.llm-input::placeholder { color: var(--muted); }
+
+.llm-send {
+  background: var(--concept);
+  color: var(--void);
+  border: none; padding: 0 1rem;
+  font-family: var(--ui-font); font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.llm-send:hover { background: var(--bright); }
+.llm-send:disabled { background: var(--muted); cursor: not-allowed; }
+
+.llm-status {
+  font-size: 0.6rem; color: var(--concept);
+  letter-spacing: 0.08em; margin-top: 0.5rem;
+  min-height: 1.1em;
+}
+
+/* Attach tokens section */
+.attach-tokens {
+  padding: 0.8rem 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+}
+
+.attach-label {
+  font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+.attach-token {
+  font-size: 0.6rem; padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border); color: var(--dim);
+  cursor: pointer; transition: all 0.2s;
+}
+
+.attach-token:hover { border-color: var(--concept); color: var(--concept); }
+
+/* Modal footer */
+.modal-footer {
+  padding: 0.8rem 1.2rem;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 0.8rem; align-items: center;
+}
+
+.btn-add-layer {
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.4rem 1rem;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer; transition: all 0.2s;
+}
+
+.btn-add-layer:hover { border-color: var(--process); color: var(--process); }
+
+.btn-crystallize-node {
+  font-family: var(--display-font); font-size: 0.95rem;
+  letter-spacing: 0.12em; padding: 0.5rem 1.5rem;
+  background: linear-gradient(135deg, var(--concept), var(--process));
+  border: none; color: var(--void);
+  cursor: pointer; transition: opacity 0.2s;
+  margin-left: auto;
+}
+
+.btn-crystallize-node:hover { opacity: 0.85; }
+
+/* ═══════════════════════════════════════════════════
+   KNOWLEDGE GRAPH PANEL (left)
+═══════════════════════════════════════════════════ */
+#graph-panel {
+  position: fixed;
+  left: 0; top: 48px; bottom: 0;
+  width: 260px;
+  background: rgba(13,16,23,0.95);
+  border-right: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  pointer-events: all;
+  display: flex; flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 41;
+}
+
+#graph-panel.open { transform: translateX(0); }
+
+.graph-header {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.graph-title {
+  font-family: var(--display-font);
+  font-size: 1.1rem; letter-spacing: 0.15em; color: var(--bright);
+  margin-bottom: 0.3rem;
+}
+
+.graph-stats {
+  font-size: 0.55rem; letter-spacing: 0.1em; color: var(--muted);
+}
+
+.graph-list {
+  flex: 1; overflow-y: auto; padding: 0.6rem;
+}
+
+.graph-node-card {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.graph-node-card:hover { border-color: var(--dim); background: rgba(255,255,255,0.02); }
+
+.gnc-type {
+  font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.gnc-name {
+  font-family: var(--body-font);
+  font-size: 0.85rem; color: var(--bright);
+  margin-bottom: 0.3rem;
+}
+
+.gnc-meta {
+  font-size: 0.5rem; color: var(--muted); letter-spacing: 0.08em;
+}
+
+.gnc-layers {
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  font-size: 0.5rem; color: var(--artifact);
+}
+
+.graph-export-btn {
+  margin: 0 0.8rem 0.8rem;
+  padding: 0.6rem;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--dim); font-family: var(--ui-font);
+  font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+}
+
+.graph-export-btn:hover { border-color: var(--artifact); color: var(--artifact); }
+
+/* ═══════════════════════════════════════════════════
+   SCENE CONTROLS
+═══════════════════════════════════════════════════ */
+#scene-controls {
+  position: fixed;
+  bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(8,10,15,0.9);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  backdrop-filter: blur(12px);
+  pointer-events: all;
+  z-index: 45;
+}
+
+.scene-btn {
+  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer; transition: all 0.2s;
+}
+
+.scene-btn:hover { border-color: var(--soft); color: var(--soft); }
+.scene-btn.active { border-color: var(--concept); color: var(--concept); }
+
+.scene-divider {
+  width: 1px; height: 20px; background: var(--border);
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+═══════════════════════════════════════════════════ */
+#toast-container {
+  position: fixed; bottom: 5rem; right: 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  z-index: 200; pointer-events: none;
+}
+
+.toast {
+  padding: 0.6rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--concept);
+  font-size: 0.65rem; letter-spacing: 0.05em;
+  color: var(--bright);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+  max-width: 280px;
+}
+
+@keyframes toastIn  { from { transform: translateX(20px); opacity: 0; } }
+@keyframes toastOut { to   { transform: translateX(20px); opacity: 0; } }
+
+/* ═══════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--deep); }
+::-webkit-scrollbar-thumb { background: var(--border); }
+
+/* ═══════════════════════════════════════════════════
+   DROP ZONE
+═══════════════════════════════════════════════════ */
+#drop-zone {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(126,184,224,0.1);
+  border: 3px dashed var(--concept);
+  display: none;
+  align-items: center; justify-content: center;
+  font-family: var(--display-font);
+  font-size: 2rem; letter-spacing: 0.2em;
+  color: var(--concept);
+}
+
+#drop-zone.active { display: flex; }
+
+/* ═══════════════════════════════════════════════════
+   SCENE INFO (when in scene mode)
+═══════════════════════════════════════════════════ */
+#scene-info {
+  position: fixed;
+  top: 60px; left: 50%; transform: translateX(-50%);
+  font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none; z-index: 45;
+  display: none;
+}
+
+#scene-info.visible { display: block; }
+
+/* Eraser cursor */
+#eraser-cursor {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--event);
+  background: rgba(232,114,74,0.08);
+  transform: translate(-50%,-50%);
+  display: none;
+  z-index: 49;
+  transition: width 0.1s, height 0.1s;
+}
+
+/* Thinking animation */
+@keyframes thinking {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 1; }
+}
+.thinking { animation: thinking 1.2s ease-in-out infinite; }
+/* ── EDGE SVG OVERLAY ──────────────────────────── */
+#edge-overlay {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 45;
+}
+
+.edge-line {
+  stroke-width: 1.2;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.edge-label-text {
+  font-family: monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  fill: var(--dim);
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.edge-pending {
+  stroke: var(--relation);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 3;
+  opacity: 0.7;
+}
+
+/* ── SYNC PANEL ────────────────────────────────── */
+#sync-panel {
+  position: fixed; bottom: 4rem; right: 1rem; z-index: 90;
+  background: var(--deep); border: 1px solid var(--border);
+  padding: 0.8rem; min-width: 260px;
+  display: none; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+#sync-panel.open { display: block; }
+.sync-title {
+  font-family: var(--ui-font); font-size: 0.5rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--concept); margin-bottom: 0.7rem;
+}
+.sync-btn {
+  font-family: var(--ui-font); font-size: 0.5rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.4rem 0.7rem;
+  background: transparent; border: 1px solid var(--border); color: var(--dim);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.sync-btn:hover { border-color: var(--concept); color: var(--concept); }
+.sync-btn.primary { background: var(--concept); color: var(--void); border-color: var(--concept); }
+.sync-note { font-family: var(--ui-font); font-size: 0.45rem; color: var(--muted); line-height: 1.6; margin-top: 0.5rem; }
+.sync-status { font-family: var(--ui-font); font-size: 0.5rem; letter-spacing: 0.1em; color: var(--process); margin-top: 0.4rem; min-height: 1.2em; }
+#sync-fab {
+  position: fixed; bottom: 1rem; right: 1rem; z-index: 91;
+  background: var(--panel); border: 1px solid var(--border);
+  color: var(--dim); font-family: var(--ui-font);
+  font-size: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.5rem 0.8rem; cursor: pointer; transition: all 0.2s; display: none;
+}
+#sync-fab:hover { border-color: var(--concept); color: var(--concept); }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════ TOP NAV ══════════════════════ -->
+<div id="top-nav" style="pointer-events:all">
+  <div class="nav-logo">SEMANTIC<span>FIELD</span></div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" id="tab-solari" onclick="switchTab('solari')">
+      <span class="dot"></span>Lobby
+    </div>
+    <div class="nav-tab" id="tab-scene" onclick="switchTab('scene')">
+      <span class="dot" style="background:var(--process)"></span>Scene
+    </div>
+    <div class="nav-tab" id="tab-graph" onclick="switchTab('graph'); togglePanel('graph')">
+      <span class="dot" style="background:var(--artifact)"></span>Graph
+    </div>
+    <div class="nav-tab" id="tab-palette" onclick="togglePanel('palette')">
+      <span class="dot" style="background:var(--relation)"></span>Canvas
+      <span id="palette-count-nav" style="font-size:0.5rem;color:var(--relation);margin-left:2px"></span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="score-display">⬡ <span id="player-score">0</span> resonance</div>
+    <div id="ai-status-badge" class="player-tag" style="font-size:0.5rem;letter-spacing:0.08em;padding:0 0.5rem;cursor:pointer;border:1px solid var(--muted);color:var(--muted)" onclick="toggleKeyInput()" title="Set Anthropic API key">
+      🔴 SET API KEY
+    </div>
+    <div id="api-key-panel" style="display:none;position:absolute;top:100%;right:0;z-index:200;background:var(--deep);border:1px solid var(--border);padding:0.8rem;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.5)">
+      <div style="font-family:var(--ui);font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Anthropic API Key</div>
+      <div style="display:flex;gap:0">
+        <input id="api-key-input" type="password" placeholder="sk-ant-..." autocomplete="off"
+          style="flex:1;background:var(--surface);border:1px solid var(--border);border-right:none;padding:0.4rem 0.6rem;font-family:var(--mono);font-size:0.6rem;color:var(--bright);outline:none"
+          oninput="previewKey(this.value)"
+        />
+        <button onclick="saveKey()" style="background:var(--concept);color:var(--void);border:none;padding:0.4rem 0.8rem;font-family:var(--display);font-size:0.7rem;letter-spacing:0.1em;cursor:pointer">SAVE</button>
+      </div>
+      <div style="font-family:var(--ui);font-size:0.45rem;color:var(--muted);margin-top:0.5rem;line-height:1.6">
+        Key stored in memory only — never sent anywhere except api.anthropic.com.<br>
+        Get a key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--dim)">console.anthropic.com</a>.<br>
+        Running inside Claude.ai? Leave blank — auth is automatic.
+      </div>
+    </div>
+    <div class="player-tag">
+      <input id="player-name" type="text" placeholder="your name" value="Anonymous" />
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCENE LAYER ══════════════════════ -->
+<div id="layer-scene">
+  <canvas id="scene-canvas"></canvas>
+</div>
+
+<!-- ══════════════════════ ANNOTATION HOTSPOTS ══════════════════════ -->
+<div id="layer-annotations"></div>
+
+<!-- ══════════════════════ SCENE INFO ══════════════════════ -->
+<div id="scene-info">Click any glowing object to open its meaning editor</div>
+
+<!-- ══════════════════════ SOLARI BOARD ══════════════════════ -->
+<div id="solari-overlay">
+  <div class="solari-title">SEMANTIC<span>FIELD</span></div>
+  <div class="solari-subtitle">Collective Memory · Ontological Cartography</div>
+
+  <div class="flip-board" id="flip-board">
+    <div class="flip-row" id="flip-row-0"></div>
+    <div class="flip-row" id="flip-row-1"></div>
+    <div class="flip-row" id="flip-row-2"></div>
+  </div>
+
+  <div class="solari-input-row">
+    <input class="solari-input" id="solari-input"
+      placeholder="Ask a question, propose a concept, begin a thought…"
+      onkeydown="if(event.key==='Enter')sendSolari()" />
+    <button class="solari-send" id="solari-send" onclick="sendSolari()">SEND</button>
+  </div>
+
+  <div class="solari-actions">
+    <button class="btn-enter-scene" onclick="enterScene()">Enter Scene →</button>
+    <label class="btn-upload-splat">
+      Drop .splat / .ply
+      <input type="file" accept=".splat,.ply,.json" style="display:none" onchange="handleFileUpload(event)" />
+    </label>
+    <span style="font-size:0.55rem;color:var(--muted);letter-spacing:0.1em">
+      Click words on the board → add to palette
+    </span>
+  </div>
+</div>
+
+<!-- ══════════════════════ PALETTE PANEL ══════════════════════ -->
+<div id="palette-panel">
+  <div class="palette-header">
+    <div class="palette-title">CANVAS</div>
+    <div style="display:flex;gap:0.8rem;align-items:center">
+      <span id="palette-count" style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em"></span>
+      <div class="palette-clear" onclick="clearPalette()">clear</div>
+      <div class="palette-close" onclick="closePalette()">✕</div>
+    </div>
+  </div>
+
+  <!-- Color group swatches — click token first, then swatch to assign -->
+  <div class="group-bar" id="group-bar">
+    <div class="group-hint" id="group-hint">select a token, then pick a color</div>
+    <div class="group-swatches">
+      <div class="group-swatch g0" onclick="assignGroup(0)" title="ungroup">·</div>
+      <div class="group-swatch g1" onclick="assignGroup(1)"></div>
+      <div class="group-swatch g2" onclick="assignGroup(2)"></div>
+      <div class="group-swatch g3" onclick="assignGroup(3)"></div>
+      <div class="group-swatch g4" onclick="assignGroup(4)"></div>
+      <div class="group-swatch g5" onclick="assignGroup(5)"></div>
+    </div>
+    <div class="group-labels" id="group-labels"></div>
+  </div>
+
+  <div class="palette-canvas" id="palette-canvas">
+    <div class="palette-empty">
+      Send a message → words appear here.<br>Click board words to add them too.
+    </div>
+  </div>
+
+  <button class="btn-crystallize" onclick="crystallizeToGraph()">
+    ◈ SEND TO SCENE
+  </button>
+</div>
+
+<!-- ══════════════════════ KNOWLEDGE GRAPH PANEL ══════════════════════ -->
+<div id="graph-panel">
+  <div class="graph-header">
+    <div class="graph-title">KNOWLEDGE GRAPH</div>
+    <div class="graph-stats" id="graph-stats">0 nodes · 0 relations</div>
+  </div>
+  <div class="graph-list" id="graph-list">
+    <div style="color:var(--muted);font-size:0.6rem;padding:1rem;letter-spacing:0.08em;text-align:center">
+      No nodes yet. Crystallize meanings from the palette or scene.
+    </div>
+  </div>
+  <button class="graph-export-btn" onclick="exportGraph()">
+    ↓ Export JSON-LD Sidecar
+  </button>
+</div>
+
+<!-- ══════════════════════ SCENE CONTROLS ══════════════════════ -->
+<div id="scene-controls" style="display:none">
+  <button class="scene-btn active" id="btn-orbit"    onclick="setMode('orbit')">⟳ Orbit</button>
+  <button class="scene-btn"        id="btn-annotate" onclick="setMode('annotate')">⊕ Place Node</button>
+  <button class="scene-btn"        id="btn-connect"  onclick="setMode('connect')" title="Click a node then click another to draw an edge">⌁ Connect</button>
+  <button class="scene-btn"        id="btn-erase"    onclick="setMode('erase')">◌ Erase</button>
+  <div class="scene-divider"></div>
+  <label style="font-size:0.5rem;color:var(--muted);letter-spacing:0.08em;display:flex;align-items:center;gap:0.4rem">
+    pts
+    <input type="range" id="point-size-slider" min="1" max="40" value="8"
+      style="width:60px;accent-color:var(--concept)"
+      oninput="updatePointSize(this.value)" />
+  </label>
+  <label style="font-size:0.5rem;color:var(--muted);letter-spacing:0.08em;display:flex;align-items:center;gap:0.4rem" id="eraser-size-wrap" hidden>
+    brush
+    <input type="range" id="eraser-size-slider" min="1" max="20" value="5"
+      style="width:60px;accent-color:var(--event)"
+      oninput="updateEraserSize(this.value)" />
+  </label>
+  <div class="scene-divider"></div>
+  <button class="scene-btn" onclick="addHotspot()">+ Node</button>
+  <button class="scene-btn" onclick="undoErase()" id="btn-undo" style="display:none">↩ Undo</button>
+  <button class="scene-btn" onclick="loadDemoScene()">Demo</button>
+  <button class="scene-btn" onclick="document.getElementById('sync-panel').classList.toggle('open')">⟳ Sync</button>
+  <div class="scene-divider"></div>
+  <button class="scene-btn" onclick="switchTab('solari')">← Lobby</button>
+</div>
+
+<!-- ══════════════════════ ANNOTATION MODAL ══════════════════════ -->
+<div id="annotation-modal">
+  <div class="modal-window">
+    <div class="modal-header">
+      <div class="modal-type-badge" id="modal-type-badge">Concept</div>
+      <div class="modal-obj-name" id="modal-obj-name">Object Name</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <!-- Polysemy section -->
+    <div class="polysemy-section">
+      <div class="dial-label">Meaning Layer</div>
+      <div class="polysemy-dial-wrap">
+        <div class="layer-tabs" id="layer-tabs"></div>
+      </div>
+      <div class="dial-value" id="dial-value-display">Layer 1</div>
+    </div>
+
+    <!-- Meaning layer content -->
+    <div class="modal-body" id="modal-body">
+      <!-- Layers rendered here by JS -->
+    </div>
+
+    <!-- Attach tokens from palette -->
+    <div class="attach-tokens" id="attach-tokens">
+      <span class="attach-label">Palette tokens:</span>
+      <span id="palette-attach-list" style="color:var(--muted);font-size:0.6rem">None in palette</span>
+    </div>
+
+    <!-- Attestation -->
+    <div class="attestation-bar">
+      <span class="attest-label">Attest:</span>
+      <button class="attest-btn attest-affirm"  onclick="attest('affirm')">✓ Affirm <span class="attest-count" id="count-affirm">0</span></button>
+      <button class="attest-btn attest-contest" onclick="attest('contest')">✕ Contest <span class="attest-count" id="count-contest">0</span></button>
+      <button class="attest-btn attest-expand"  onclick="attest('expand')">+ Expand <span class="attest-count" id="count-expand">0</span></button>
+      <button class="attest-btn attest-ambig"   onclick="attest('ambig')">~ Ambiguous <span class="attest-count" id="count-ambig">0</span></button>
+    </div>
+
+    <!-- LLM co-evolution -->
+    <div class="modal-llm">
+      <div style="font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem">
+        Co-evolve with AI
+      </div>
+      <div class="llm-row">
+        <input class="llm-input" id="modal-llm-input"
+          placeholder="Refine, challenge, expand, connect this meaning…"
+          onkeydown="if(event.key==='Enter')evolveAnnotation()" />
+        <button class="llm-send" id="modal-llm-send" onclick="evolveAnnotation()">Evolve</button>
+      </div>
+      <div class="llm-status" id="modal-llm-status"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button class="btn-add-layer" onclick="addMeaningLayer()">+ Add Meaning Layer</button>
+      <span style="font-size:0.55rem;color:var(--muted);letter-spacing:0.08em">
+        <span id="modal-contributor-count">0</span> contributors · 
+        <span id="modal-revision-count">0</span> revisions
+      </span>
+      <button class="btn-crystallize-node" onclick="crystallizeCurrentNode()">
+        Crystallize Node →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ DROP ZONE ══════════════════════ -->
+<div id="drop-zone">DROP .SPLAT / .PLY / .JSON</div>
+
+<!-- ══════════════════════ TOAST ══════════════════════ -->
+<div id="toast-container"></div>
+<div id="eraser-cursor"></div>
+
+<!-- ══════════════════════ EDGE OVERLAY ══════════════════════ -->
+<svg id="edge-overlay" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-concept"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7eb8e0" opacity="0.7"/></marker>
+    <marker id="arrow-event"    markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8724a" opacity="0.7"/></marker>
+    <marker id="arrow-process"  markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6bcf9e" opacity="0.7"/></marker>
+    <marker id="arrow-relation" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#c99fe8" opacity="0.7"/></marker>
+    <marker id="arrow-artifact" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f0cc6a" opacity="0.7"/></marker>
+  </defs>
+  <g id="edge-lines"></g>
+  <line id="edge-pending-line" class="edge-pending" x1="0" y1="0" x2="0" y2="0" style="display:none"/>
+</svg>
+
+<!-- ══════════════════════ SYNC PANEL ══════════════════════ -->
+<div id="sync-panel">
+  <div class="sync-title">⟳ Shared World</div>
+
+  <!-- File export/import -->
+  <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.8rem">
+    <button class="sync-btn primary" onclick="exportWorldFile()">↓ Save world.json</button>
+    <label class="sync-btn" style="cursor:pointer">
+      ↑ Load world.json
+      <input type="file" accept=".json" style="display:none" onchange="importWorldFile(event)"/>
+    </label>
+  </div>
+
+  <!-- GitHub workflow -->
+  <div style="font-family:var(--ui-font);font-size:0.45rem;letter-spacing:0.08em;color:var(--muted);line-height:1.9;border-top:1px solid var(--border);padding-top:0.7rem">
+    <div style="color:var(--dim);margin-bottom:0.3rem;letter-spacing:0.15em;text-transform:uppercase;font-size:0.42rem">GitHub sync workflow</div>
+    <span style="color:var(--concept)">1</span> Save world.json → drop into your repo folder<br>
+    <span style="color:var(--concept)">2</span> <code style="color:var(--soft)">git add world.json && git commit -m "world update" && git push</code><br>
+    <span style="color:var(--concept)">3</span> Collaborator: <code style="color:var(--soft)">git pull</code> → Load world.json here<br>
+    <span style="color:var(--concept)">4</span> Loads merge non-destructively — newer revision wins per node<br>
+    <span style="color:var(--dim);font-style:italic">API keys are never written to the file.</span>
+  </div>
+
+  <div class="sync-status" id="sync-status"></div>
+</div>
+
+<button id="sync-fab" onclick="document.getElementById('sync-panel').classList.toggle('open')">
+  ⟳ Sync
+</button>
+
+<!-- ══════════════════════ JS ══════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  GLOBAL STATE
+// ═══════════════════════════════════════════════════
+const state = {
+  tab: 'solari',
+  palette: [],
+  graph: [],
+  objects: [],
+  edges: [],            // { id, fromId, toId, label, type }
+  currentObject: null,
+  currentLayer: 0,
+  playerName: 'Anonymous',
+  playerScore: 0,
+  defaultType: 'concept',
+  sceneMode: 'orbit',
+  apiKey: '',
+  connectFrom: null,    // id of first node selected in connect mode
+};
+
+// ═══════════════════════════════════════════════════
+//  API KEY MANAGEMENT
+// ═══════════════════════════════════════════════════
+function toggleKeyInput() {
+  const panel = document.getElementById('api-key-panel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) document.getElementById('api-key-input').focus();
+}
+
+function previewKey(val) {
+  // live update badge while typing
+  updateAIBadge(val.trim());
+}
+
+function saveKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  state.apiKey = val;
+  updateAIBadge(val);
+  document.getElementById('api-key-panel').style.display = 'none';
+  toast(val ? '🟢 API key saved — AI features enabled' : '🔴 Key cleared — AI features disabled');
+}
+
+function updateAIBadge(key) {
+  const badge = document.getElementById('ai-status-badge');
+  if (key && key.startsWith('sk-ant-')) {
+    badge.textContent = '🟢 AI READY';
+    badge.style.color = 'var(--process)';
+    badge.style.borderColor = 'var(--process)';
+  } else if (key) {
+    badge.textContent = '⚠ CHECK KEY';
+    badge.style.color = 'var(--artifact)';
+    badge.style.borderColor = 'var(--artifact)';
+  } else {
+    badge.textContent = '🔴 SET API KEY';
+    badge.style.color = 'var(--muted)';
+    badge.style.borderColor = 'var(--muted)';
+  }
+}
+
+// Close key panel on outside click
+document.addEventListener('click', e => {
+  const panel = document.getElementById('api-key-panel');
+  const badge = document.getElementById('ai-status-badge');
+  if (panel && !panel.contains(e.target) && !badge.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
+
+// On load: detect if we're inside Claude.ai sandbox (fetch will work without key)
+// We probe quietly — if no key set and not in sandbox, AI calls will show a helpful error
+function detectSandbox() {
+  // In Claude.ai artifact sandbox the origin is a special subdomain
+  const inSandbox = window.location.hostname.includes('claude') ||
+                    window.location.hostname.includes('anthropic') ||
+                    window.location.protocol === 'blob:' ||
+                    window.location.hostname === 'localhost';
+  if (inSandbox) {
+    updateAIBadge('sk-ant-sandbox'); // show green
+    document.getElementById('ai-status-badge').title = 'Running inside Claude.ai — API auth is automatic';
+  }
+}
+document.addEventListener('DOMContentLoaded', detectSandbox);
+
+function getAPIHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (state.apiKey && state.apiKey !== 'sk-ant-sandbox') {
+    headers['x-api-key'] = state.apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+    headers['anthropic-dangerous-allow-browser'] = 'true';
+  }
+  return headers;
+}
+
+function requireKey() {
+  // Returns true if we can proceed, false + shows error if not
+  const inSandbox = window.location.hostname.includes('claude') ||
+                    window.location.hostname.includes('anthropic') ||
+                    window.location.protocol === 'blob:' ||
+                    window.location.hostname === 'localhost';
+  if (inSandbox || state.apiKey) return true;
+  toast('🔴 Add your Anthropic API key — click SET API KEY in the top nav');
+  document.getElementById('api-key-panel').style.display = 'block';
+  return false;
+}
+const STORAGE_KEY = 'semanticfield_v1';
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*?';
+
+const TYPE_COLOR_HEX = {
+  event:'#e8724a', concept:'#7eb8e0', process:'#6bcf9e',
+  relation:'#c99fe8', artifact:'#f0cc6a'
+};
+
+// ═══════════════════════════════════════════════════
+//  PERSISTENCE
+// ═══════════════════════════════════════════════════
+async function persist() {
+  const data = {
+    graph: state.graph,
+    edges: state.edges,
+    objects: state.objects.map(o => ({
+      id: o.id, name: o.name, type: o.type,
+      pos: o.pos, layers: o.layers, attestations: o.attestations,
+      contributors: o.contributors, revisions: o.revisions,
+    })),
+    palette: state.palette,
+  };
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(data), true);
+  } catch(e) {}
+}
+
+async function loadPersisted() {
+  try {
+    const r = await window.storage.get(STORAGE_KEY);
+    if (r && r.value) {
+      const d = JSON.parse(r.value);
+      if (d.graph)   state.graph = d.graph;
+      if (d.edges)   state.edges = d.edges;
+      if (d.objects) {
+        d.objects.forEach(o => {
+          state.objects.push({ ...o, mesh: null });
+          if (state.tab === 'scene') spawnHotspot(o);
+        });
+      }
+      if (d.palette) d.palette.forEach(t => {
+        // migrate old { word, type } → new { word, group, isPhrase, meaning }
+        const tok = typeof t === 'string'
+          ? { word: t, group: 0, isPhrase: false, meaning: '' }
+          : { word: t.word, group: t.group ?? 0, isPhrase: t.isPhrase ?? false, meaning: t.meaning ?? '' };
+        if (tok.word && !state.palette.find(p => p.word === tok.word)) state.palette.push(tok);
+      });
+      renderGraphPanel();
+      setTimeout(renderEdges, 200);
+      toast('Session restored');
+    }
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════
+//  TAB / PANEL SWITCHING
+// ═══════════════════════════════════════════════════
+function switchTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`)?.classList.add('active');
+
+  const solari = document.getElementById('solari-overlay');
+  const sceneCtrl = document.getElementById('scene-controls');
+  const sceneInfo = document.getElementById('scene-info');
+
+  if (tab === 'solari') {
+    solari.classList.remove('hidden');
+    sceneCtrl.style.display = 'none';
+    sceneInfo.classList.remove('visible');
+  } else if (tab === 'scene') {
+    solari.classList.add('hidden');
+    sceneCtrl.style.display = 'flex';
+    sceneInfo.classList.add('visible');
+    initScene();
+  }
+}
+
+function togglePanel(which) {
+  const pal = document.getElementById('palette-panel');
+  const grp = document.getElementById('graph-panel');
+  if (which === 'palette') {
+    pal.classList.toggle('open');
+  } else if (which === 'graph') {
+    grp.classList.toggle('open');
+  }
+}
+
+function enterScene() {
+  switchTab('scene');
+  if (state.objects.length === 0) loadDemoScene();
+  document.getElementById('sync-fab').style.display = 'block';
+  // render edges after brief delay for hotspot positions to settle
+  setTimeout(renderEdges, 300);
+}
+
+// ═══════════════════════════════════════════════════
+//  SOLARI FLIP BOARD
+// ═══════════════════════════════════════════════════
+let flipRows = [[], [], []];
+let flipTimers = {};
+
+function renderFlipBoard(texts) {
+  // texts = array of up to 3 strings (one per row)
+  texts.forEach((text, rowIdx) => {
+    const row = document.getElementById(`flip-row-${rowIdx}`);
+    if (!row) return;
+    row.innerHTML = '';
+    const words = text.split(' ');
+    words.forEach((word, wi) => {
+      const wordEl = document.createElement('div');
+      wordEl.className = 'flip-word';
+      wordEl.dataset.word = word;
+      wordEl.onclick = () => bumpWordToCanvas(word);
+
+      word.split('').forEach((ch, ci) => {
+        const charEl = document.createElement('div');
+        charEl.className = 'flip-char';
+        charEl.dataset.final = ch.toUpperCase();
+        charEl.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
+        wordEl.appendChild(charEl);
+        animateChar(charEl, ch.toUpperCase(), wi * 80 + ci * 40);
+      });
+
+      row.appendChild(wordEl);
+
+      // space
+      if (wi < words.length - 1) {
+        const sp = document.createElement('div');
+        sp.className = 'flip-char space';
+        sp.textContent = '';
+        row.appendChild(sp);
+      }
+    });
+  });
+}
+
+function animateChar(el, finalChar, delay) {
+  let count = 0;
+  const maxFlips = 8 + Math.floor(Math.random() * 6);
+  setTimeout(() => {
+    const interval = setInterval(() => {
+      if (count >= maxFlips) {
+        clearInterval(interval);
+        el.textContent = finalChar;
+        el.classList.add('settled');
+        return;
+      }
+      el.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
+      count++;
+    }, 40);
+  }, delay);
+}
+
+// Initial greeting
+const GREETINGS = [
+  ['WHAT DOES THIS MEAN?', 'MEANING IS NEGOTIATED', 'BEGIN ANYWHERE'],
+  ['EVERY OBJECT HOLDS', 'MULTITUDES OF SENSE', 'WHICH LAYER ARE YOU ON?'],
+  ['THE MAP IS NOT THE', 'TERRITORY · BUT THE', 'TERRITORY SHIFTS TOO'],
+];
+
+setTimeout(() => renderFlipBoard(GREETINGS[0]), 500);
+
+// ═══════════════════════════════════════════════════
+//  SOLARI CHAT
+// ═══════════════════════════════════════════════════
+let solariHistory = [];
+
+async function sendSolari() {
+  const input = document.getElementById('solari-input');
+  const btn   = document.getElementById('solari-send');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  // Show what was typed on the board immediately — row 2 as "echo"
+  renderFlipBoard([text.toUpperCase().substring(0,28), 'THINKING...', '']);
+
+  if (btn) btn.disabled = true;
+  input.value = '';
+
+  if (!requireKey()) {
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  solariHistory.push({ role: 'user', content: text });
+
+  try {
+    const sysPrompt = `You are the intelligence behind SEMANTIC FIELD, a collective memory tool.
+Users build knowledge graphs in 3D space. You respond in a way that fits a Solari departure board —
+short, punchy, philosophically charged. Respond with exactly 3 lines, each under 30 characters, UPPERCASE.
+
+After the 3 lines, on a new line starting with "TOKENS:", list 5-10 key words and phrases.
+Single words are listed bare. Multi-word phrases that belong together as a memetic unit are wrapped in [square brackets].
+Separate all items with commas.
+
+Example:
+THE MAP IS NOT THE LAND
+EVERY TERRITORY SHIFTS
+MEANING LIVES BETWEEN US
+
+TOKENS: map, territory, [collective memory], meaning, [memory palace], negotiation, [semantic field], place`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: getAPIHeaders(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        system: sysPrompt,
+        messages: solariHistory,
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    const reply = data.content?.map(b => b.text || '').join('') || 'ERROR · RETRY · AGAIN';
+    solariHistory.push({ role: 'assistant', content: reply });
+
+    const parts = reply.split('\n').filter(l => l.trim());
+    const tokenLine = parts.find(p => p.startsWith('TOKENS:') || p.startsWith('WORDS:'));
+    const textLines = parts.filter(p => !p.startsWith('TOKENS:') && !p.startsWith('WORDS:')).slice(0, 3);
+
+    // Pad to 3 rows and show on board
+    while (textLines.length < 3) textLines.push('');
+    renderFlipBoard(textLines);
+
+    // Parse tokens — [phrase] = single unit, bare word = single word
+    if (tokenLine) {
+      const raw = tokenLine.replace(/^(TOKENS|WORDS):/, '').trim();
+      // Split by comma but keep bracket-groups intact
+      const items = raw.split(',').map(s => s.trim()).filter(Boolean);
+      let added = 0;
+      items.forEach(item => {
+        const isPhrase = item.startsWith('[') && item.endsWith(']');
+        const word = isPhrase ? item.slice(1, -1).trim() : item;
+        if (word) { addToken(word, isPhrase); added++; }
+      });
+      if (added > 0) {
+        openPalette();
+        toast(`${added} tokens on canvas`);
+      }
+    }
+
+    addScore(10);
+  } catch(err) {
+    console.error('Groq error:', err);
+    const msg = (err.message || 'UNKNOWN ERROR').toUpperCase().substring(0, 28);
+    renderFlipBoard(['API ERROR:', msg, 'SEE CONSOLE (F12)']);
+  } finally {
+    const btn = document.getElementById('solari-send');
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  WORD PALETTE — group color system
+// ═══════════════════════════════════════════════════
+
+// Group colors (index 0 = ungrouped)
+const GROUP_COLORS = [
+  null,
+  '#e8724a', // 1 — ember
+  '#7eb8e0', // 2 — sky
+  '#6bcf9e', // 3 — mint
+  '#c99fe8', // 4 — violet
+  '#f0cc6a', // 5 — gold
+];
+const GROUP_NAMES = ['', '', '', '', '', ''];
+
+// Token shape: { word, group: 0-5, isPhrase: bool, meaning: '' }
+let selectedTokenIdx = null;
+
+function openPalette() {
+  document.getElementById('palette-panel').classList.add('open');
+}
+
+function closePalette() {
+  document.getElementById('palette-panel').classList.remove('open');
+  selectedTokenIdx = null;
+}
+
+function bumpWordToCanvas(word) {
+  const clean = word.replace(/[^a-zA-Z0-9\s\-']/g, '').trim();
+  if (!clean) return;
+  addToken(clean, false);
+  openPalette();
+  toast(`"${clean}" → canvas`);
+}
+
+function addToken(word, isPhrase = false) {
+  if (state.palette.find(t => t.word.toLowerCase() === word.toLowerCase())) return;
+  state.palette.push({ word, group: 0, isPhrase, meaning: '' });
+  renderPalette();
+  persist();
+}
+
+function renderPalette() {
+  const canvas = document.getElementById('palette-canvas');
+  const countEl = document.getElementById('palette-count');
+  if (countEl) countEl.textContent = state.palette.length ? `${state.palette.length}` : '';
+  const navCount = document.getElementById('palette-count-nav');
+  if (navCount) navCount.textContent = state.palette.length ? `${state.palette.length}` : '';
+  if (state.palette.length === 0) {
+    canvas.innerHTML = `<div class="palette-empty">Send a message → words appear here.<br>Click board words to add them too.</div>`;
+    renderGroupLabels();
+    return;
+  }
+
+  canvas.innerHTML = '';
+  state.palette.forEach((token, idx) => {
+    const el = document.createElement('div');
+    const grpClass = token.group > 0 ? `grp-${token.group}` : '';
+    const phraseClass = token.isPhrase ? 'is-phrase' : '';
+    const selClass = selectedTokenIdx === idx ? 'selected' : '';
+    el.className = `palette-token ${grpClass} ${phraseClass} ${selClass}`.trim();
+
+    el.innerHTML = `${token.word}<span class="token-remove" onclick="removeToken(${idx});event.stopPropagation()">✕</span>`;
+
+    el.addEventListener('click', () => selectToken(idx));
+    el.addEventListener('dblclick', () => editTokenMeaning(idx));
+    if (token.meaning) el.title = token.meaning;
+
+    canvas.appendChild(el);
+  });
+
+  renderGroupLabels();
+}
+
+function selectToken(idx) {
+  selectedTokenIdx = selectedTokenIdx === idx ? null : idx;
+  const hint = document.getElementById('group-hint');
+  if (hint) {
+    hint.textContent = selectedTokenIdx !== null
+      ? `"${state.palette[idx].word}" selected — pick a color`
+      : 'select a token, then pick a color';
+    hint.classList.toggle('active', selectedTokenIdx !== null);
+  }
+  renderPalette();
+}
+
+function assignGroup(grpNum) {
+  if (selectedTokenIdx === null) {
+    toast('Select a token first, then pick a color');
+    return;
+  }
+  state.palette[selectedTokenIdx].group = grpNum;
+  selectedTokenIdx = null;
+  const hint = document.getElementById('group-hint');
+  if (hint) { hint.textContent = 'select a token, then pick a color'; hint.classList.remove('active'); }
+  renderPalette();
+  persist();
+}
+
+function editTokenMeaning(idx) {
+  const token = state.palette[idx];
+  const meaning = prompt(`Meaning for "${token.word}" (optional — leave blank to just use color):`, token.meaning || '');
+  if (meaning !== null) {
+    state.palette[idx].meaning = meaning.trim();
+    renderPalette();
+    persist();
+  }
+}
+
+function renderGroupLabels() {
+  const el = document.getElementById('group-labels');
+  if (!el) return;
+  el.innerHTML = '';
+
+  const usedGroups = [...new Set(state.palette.filter(t => t.group > 0).map(t => t.group))].sort();
+  usedGroups.forEach(g => {
+    const color = GROUP_COLORS[g];
+    const count = state.palette.filter(t => t.group === g).length;
+    const pill = document.createElement('div');
+    pill.className = 'group-label-pill';
+    pill.style.cssText = `background:${color}22;border:1px solid ${color}66;color:${color}`;
+    pill.innerHTML = `<input class="group-label-input" style="color:${color}"
+      value="${GROUP_NAMES[g] || ''}" placeholder="label…"
+      onclick="event.stopPropagation()"
+      onchange="GROUP_NAMES[${g}]=this.value"
+      title="Name this color group" />
+      <span style="opacity:0.5;font-size:0.9em">${count}</span>`;
+    el.appendChild(pill);
+  });
+}
+
+function removeToken(idx) {
+  state.palette.splice(idx, 1);
+  if (selectedTokenIdx === idx) selectedTokenIdx = null;
+  else if (selectedTokenIdx > idx) selectedTokenIdx--;
+  renderPalette();
+  persist();
+}
+
+function clearPalette() {
+  state.palette = [];
+  selectedTokenIdx = null;
+  renderPalette();
+  persist();
+}
+
+// Legacy shim — keep crystallize working
+function setDefaultType(t) { state.defaultType = t; }
+
+function updateAttachList() {
+  const el = document.getElementById('palette-attach-list');
+  if (!el) return;
+  if (state.palette.length === 0) {
+    el.textContent = 'None in palette';
+    el.style.color = 'var(--muted)';
+    return;
+  }
+  const color = (t) => t.group > 0 ? GROUP_COLORS[t.group] : 'var(--soft)';
+  el.innerHTML = state.palette.map((t, i) =>
+    `<span class="attach-token" onclick="attachTokenToLayer(${i})"
+      style="color:${color(t)};border-color:${color(t)}"
+    >${t.word}</span>`
+  ).join('');
+}
+
+function attachTokenToLayer(idx) {
+  if (!state.currentObject) return;
+  const token = state.palette[idx];
+  const layer = state.currentObject.layers[state.currentLayer];
+  if (layer) {
+    layer.text += (layer.text ? '\n' : '') + token.word;
+    renderCurrentLayer();
+    toast(`Attached "${token.word}" to layer`);
+    persist();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  CRYSTALLIZE TO GRAPH
+// ═══════════════════════════════════════════════════
+function crystallizeToGraph() {
+  if (state.palette.length === 0) { toast('Canvas is empty'); return; }
+
+  const label = state.palette.map(t => t.word).join(' · ');
+
+  // Use dominant group color as the node type proxy
+  const grpCounts = {};
+  state.palette.forEach(t => { if (t.group > 0) grpCounts[t.group] = (grpCounts[t.group]||0)+1; });
+  const dominantGrp = Object.entries(grpCounts).sort((a,b)=>b[1]-a[1])[0]?.[0] || 0;
+  const typeMap = ['concept','event','concept','process','relation','artifact'];
+  const nodeType = typeMap[dominantGrp] || 'concept';
+
+  const node = {
+    id: `node-${Date.now()}`,
+    name: label.substring(0, 60),
+    type: nodeType,
+    tokens: [...state.palette],
+    layers: [{ text: `Palette: ${label}`, attestations: {} }],
+    attestations: { affirm:0, contest:0, expand:0, ambig:0 },
+    contributors: [state.playerName],
+    revisions: 1,
+    created: new Date().toISOString(),
+  };
+
+  state.graph.push(node);
+  renderGraphPanel();
+  persist();
+  addScore(25);
+  toast(`Sent to scene: "${node.name.substring(0,30)}"`);
+  closePalette();
+}
+
+function crystallizeCurrentNode() {
+  if (!state.currentObject) return;
+  const obj = state.currentObject;
+
+  const existing = state.graph.find(n => n.id === obj.id);
+  if (existing) {
+    Object.assign(existing, { layers: obj.layers, attestations: obj.attestations,
+      revisions: (existing.revisions||0)+1 });
+    toast('Node updated in graph');
+  } else {
+    state.graph.push({
+      id: obj.id, name: obj.name, type: obj.type,
+      layers: obj.layers, attestations: obj.attestations,
+      contributors: obj.contributors, revisions: obj.revisions,
+      created: new Date().toISOString(),
+    });
+    toast(`"${obj.name}" crystallized to graph`);
+  }
+
+  renderGraphPanel();
+  persist();
+  addScore(30);
+  closeModal();
+}
+
+function renderGraphPanel() {
+  const list = document.getElementById('graph-list');
+  const stats = document.getElementById('graph-stats');
+  const relations = state.graph.filter(n => n.type === 'relation').length;
+  stats.textContent = `${state.graph.length} nodes · ${relations} relations`;
+
+  if (state.graph.length === 0) {
+    list.innerHTML = `<div style="color:var(--muted);font-size:0.6rem;padding:1rem;
+      letter-spacing:0.08em;text-align:center">No nodes yet.</div>`;
+    return;
+  }
+
+  const typeColor = { event:'var(--event)',concept:'var(--concept)',process:'var(--process)',
+    relation:'var(--relation)',artifact:'var(--artifact)' };
+
+  list.innerHTML = state.graph.map(n => `
+    <div class="graph-node-card" onclick="openGraphNode('${n.id}')">
+      <div class="gnc-type" style="color:${typeColor[n.type]||'var(--dim)'}">
+        ${n.type || 'node'}
+      </div>
+      <div class="gnc-name">${n.name}</div>
+      <div class="gnc-meta">
+        ${n.contributors?.join(', ')||'anon'} · ${n.revisions||1} rev
+      </div>
+      <div class="gnc-layers">⬡ ${n.layers?.length||1}</div>
+    </div>
+  `).join('');
+}
+
+function openGraphNode(id) {
+  const node = state.graph.find(n => n.id === id);
+  if (!node) return;
+  // Convert to scene object format and open
+  state.currentObject = { ...node, pos: {x:0,y:0} };
+  openModal(state.currentObject);
+}
+
+function exportGraph() {
+  const jsonld = {
+    "@context": {
+      "sf": "https://semanticfield.io/ontology/",
+      "event": "sf:Event", "concept": "sf:Concept",
+      "process": "sf:Process", "relation": "sf:Relation", "artifact": "sf:Artifact",
+    },
+    "@graph": state.graph.map(n => ({
+      "@id": `sf:${n.id}`,
+      "@type": `sf:${n.type}`,
+      "sf:name": n.name,
+      "sf:layers": n.layers,
+      "sf:attestations": n.attestations,
+      "sf:contributors": n.contributors,
+      "sf:revisions": n.revisions,
+      "sf:created": n.created,
+    }))
+  };
+  const blob = new Blob([JSON.stringify(jsonld, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `semanticfield-graph-${Date.now()}.json`;
+  a.click();
+  toast('Graph exported as JSON-LD');
+}
+
+// ═══════════════════════════════════════════════════
+//  THREE.JS SCENE
+// ═══════════════════════════════════════════════════
+let renderer, camera, scene3d, animId;
+let isDragging = false, prevMouse = {};
+
+function initScene() {
+  if (renderer) return; // already initialized
+
+  const canvas = document.getElementById('scene-canvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x080a0f, 1);
+
+  scene3d = new THREE.Scene();
+
+  // No fog — it makes the splat look holographic
+  // scene3d.fog = new THREE.FogExp2(0x0d1017, 0.035);
+
+  // Subtle background gradient via clear color
+  renderer.setClearColor(0x0a0d12, 1);
+
+  // Camera — start from a proper "outside looking in" angle
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.01, 500);
+  camera.position.set(0, 8, 20);
+  camera.lookAt(0, 0, 0);
+
+  // Minimal ambient — point clouds are vertex-colored, don't need much
+  scene3d.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+  // Ground shadow plane — sits at Y=-5 by default, repositioned after PLY loads
+  const groundGeo = new THREE.PlaneGeometry(60, 60);
+  const groundMat = new THREE.MeshBasicMaterial({
+    color: 0x0d1117, transparent: true, opacity: 0.85,
+    side: THREE.DoubleSide,
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -5.5;
+  ground.name = 'ground_plane';
+  scene3d.add(ground);
+
+  // Grid — subtle, sits on ground plane
+  const grid = new THREE.GridHelper(60, 60, 0x1a2535, 0x111820);
+  grid.position.y = -5.48;
+  grid.name = 'grid_helper';
+  scene3d.add(grid);
+
+  // Particles (simulate gaussian splat density)
+  createParticleCloud();
+
+  // Orbit controls via mouse
+  setupOrbitControls();
+
+  // Eraser
+  setupEraserEvents();
+
+  // Edge connect mode
+  setupConnectMode();
+
+  // Resize
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  animate();
+}
+
+function createParticleCloud() {
+  const geometry = new THREE.BufferGeometry();
+  const count = 3000;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+
+  const palette3d = [
+    new THREE.Color(0x7eb8e0), new THREE.Color(0x6bcf9e),
+    new THREE.Color(0xe8724a), new THREE.Color(0xc99fe8),
+    new THREE.Color(0xf0cc6a),
+  ];
+
+  for (let i = 0; i < count; i++) {
+    // Gaussian-ish distribution
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    const r = 3 + Math.random() * 5;
+    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta) + (Math.random()-0.5)*2;
+    positions[i*3+1] = r * Math.cos(phi) * 0.6 + (Math.random()-0.5);
+    positions[i*3+2] = r * Math.sin(phi) * Math.sin(theta) + (Math.random()-0.5)*2;
+
+    const c = palette3d[Math.floor(Math.random() * palette3d.length)];
+    colors[i*3] = c.r * (0.3 + Math.random()*0.7);
+    colors[i*3+1] = c.g * (0.3 + Math.random()*0.7);
+    colors[i*3+2] = c.b * (0.3 + Math.random()*0.7);
+  }
+
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const material = new THREE.PointsMaterial({
+    size: 0.08, vertexColors: true, transparent: true, opacity: 0.7,
+    sizeAttenuation: true,
+  });
+
+  const points = new THREE.Points(geometry, material);
+  points.name = 'demo_cloud';
+  scene3d.add(points);
+}
+
+// Camera orbit state
+let cameraTheta  = 0;           // horizontal angle
+let cameraPhi    = 1.1;         // vertical angle — start slightly above horizon (radians)
+let cameraRadius = 20;          // distance from target
+let cameraTarget = new THREE.Vector3(0, 0, 0);  // orbit pivot
+let orbitActive  = false, orbitLastX = 0, orbitLastY = 0;
+let panActive    = false, panLastX  = 0, panLastY  = 0;
+
+// drag-node state
+let draggingNode = null;
+let dragStarted  = false;
+let mousedownObj = null;
+const raycaster  = new THREE.Raycaster();
+const mousePt    = new THREE.Vector2();
+
+function setupOrbitControls() {
+  const canvas = document.getElementById('scene-canvas');
+
+  canvas.addEventListener('mousedown', e => {
+    if (state.sceneMode === 'erase') return;
+    if (state.sceneMode === 'annotate') { handleSceneClick(e); return; }
+
+    if (e.button === 2 || (e.button === 0 && e.altKey)) {
+      // Right-click or Alt+drag = pan
+      panActive = true; panLastX = e.clientX; panLastY = e.clientY;
+    } else {
+      orbitActive = true; orbitLastX = e.clientX; orbitLastY = e.clientY;
+    }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (draggingNode) { dragNodeMove(e); return; }
+
+    if (orbitActive) {
+      const dx = e.clientX - orbitLastX;
+      const dy = e.clientY - orbitLastY;
+      cameraTheta -= dx * 0.004;
+      // Lock vertical: min ~5° above horizon, max ~80° (never below ground, never straight down)
+      cameraPhi = Math.max(0.08, Math.min(1.45, cameraPhi + dy * 0.004));
+      orbitLastX = e.clientX; orbitLastY = e.clientY;
+      updateCamera();
+    }
+
+    if (panActive) {
+      const dx = e.clientX - panLastX;
+      const dy = e.clientY - panLastY;
+      // Pan in camera's XZ plane
+      const right   = new THREE.Vector3();
+      const up      = new THREE.Vector3(0, 1, 0);
+      right.crossVectors(camera.getWorldDirection(new THREE.Vector3()), up).normalize();
+      const panSpeed = cameraRadius * 0.001;
+      cameraTarget.addScaledVector(right, -dx * panSpeed);
+      cameraTarget.y += dy * panSpeed;
+      panLastX = e.clientX; panLastY = e.clientY;
+      updateCamera();
+    }
+  });
+
+  window.addEventListener('mouseup', e => {
+    orbitActive = false; panActive = false;
+    if (draggingNode) { dragNodeEnd(e); }
+  });
+
+  canvas.addEventListener('wheel', e => {
+    cameraRadius = Math.max(1, Math.min(80, cameraRadius * (1 + e.deltaY * 0.001)));
+    updateCamera();
+    e.preventDefault();
+  }, { passive: false });
+
+  // Double-click to reset view
+  canvas.addEventListener('dblclick', () => {
+    cameraTheta = 0; cameraPhi = 1.1; cameraRadius = 20;
+    cameraTarget.set(0, 0, 0);
+    updateCamera();
+    toast('View reset');
+  });
+
+  // Prevent context menu on right-click
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+function updateCamera() {
+  // Spherical coords around cameraTarget
+  const sinPhi = Math.sin(cameraPhi);
+  camera.position.x = cameraTarget.x + cameraRadius * sinPhi * Math.sin(cameraTheta);
+  camera.position.y = cameraTarget.y + cameraRadius * Math.cos(cameraPhi);
+  camera.position.z = cameraTarget.z + cameraRadius * sinPhi * Math.cos(cameraTheta);
+  camera.lookAt(cameraTarget);
+  camera.up.set(0, 1, 0); // enforce Y-up always
+}
+
+// ─── Place node on canvas click (annotate mode) ───────────────────────
+function handleSceneClick(e) {
+  if (draggingNode) return;
+  // Cast ray into scene and place node at intersection with a virtual plane at y=0
+  const rect = renderer.domElement.getBoundingClientRect();
+  mousePt.x = ((e.clientX - rect.left) / rect.width)  *  2 - 1;
+  mousePt.y = -((e.clientY - rect.top)  / rect.height) *  2 + 1;
+  raycaster.setFromCamera(mousePt, camera);
+
+  // Intersect with horizontal plane at y=0 (or PLY centroid)
+  const plane = new THREE.Plane(new THREE.Vector3(0,1,0), 0);
+  const target = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, target);
+
+  if (target) {
+    const obj = {
+      id: `obj-${Date.now()}`,
+      name: 'New Node',
+      type: state.defaultType,
+      pos: { x: target.x, y: target.y, z: target.z },
+      layers: [{ text: '', attestations: {} }],
+      attestations: { affirm:0, contest:0, expand:0, ambig:0 },
+      contributors: [state.playerName],
+      revisions: 1,
+    };
+    state.objects.push(obj);
+    spawnHotspot(obj);
+    openModal(obj);
+    persist();
+    toast('Node placed — name and annotate it');
+  }
+}
+
+// ─── Node dragging ────────────────────────────────────────────────────
+function startNodeDrag(e, obj) {
+  e.stopPropagation();
+  e.preventDefault();
+  draggingNode = { obj };
+
+  // Disable orbit while dragging
+  orbitActive = false;
+
+  // Visual feedback
+  const el = document.getElementById(`hotspot-${obj.id}`);
+  if (el) el.style.opacity = '0.6';
+
+  document.body.style.cursor = 'grabbing';
+}
+
+function dragNodeMove(e) {
+  if (!draggingNode) return;
+  const obj = draggingNode.obj;
+  const rect = renderer.domElement.getBoundingClientRect();
+  mousePt.x = ((e.clientX - rect.left) / rect.width)  *  2 - 1;
+  mousePt.y = -((e.clientY - rect.top)  / rect.height) *  2 + 1;
+  raycaster.setFromCamera(mousePt, camera);
+
+  // Intersect with a plane facing the camera, passing through current obj position
+  const camDir = new THREE.Vector3();
+  camera.getWorldDirection(camDir);
+
+  // Use a plane parallel to the view plane passing through obj's current 3D pos
+  const objPos = new THREE.Vector3(obj.pos.x, obj.pos.y || 0, obj.pos.z);
+  const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(camDir, objPos);
+  const target = new THREE.Vector3();
+  raycaster.ray.intersectPlane(plane, target);
+
+  if (target) {
+    obj.pos.x = target.x;
+    obj.pos.y = target.y;
+    obj.pos.z = target.z;
+    // hotspot position updated next frame by updateHotspotPositions
+  }
+}
+
+function dragNodeEnd(e) {
+  if (!draggingNode) return;
+  const obj = draggingNode.obj;
+  const el = document.getElementById(`hotspot-${obj.id}`);
+  if (el) el.style.opacity = '1';
+  document.body.style.cursor = '';
+  draggingNode = null;
+  persist();
+  toast(`Node "${obj.name}" placed at (${obj.pos.x.toFixed(1)}, ${obj.pos.y.toFixed(1)}, ${obj.pos.z.toFixed(1)})`);
+}
+
+let edgeRenderFrame = 0;
+function animate() {
+  animId = requestAnimationFrame(animate);
+  renderer.render(scene3d, camera);
+  updateHotspotPositions();
+  // Re-render edges every 3 frames (20fps is plenty for SVG lines)
+  if (++edgeRenderFrame % 3 === 0 && state.edges.length > 0) renderEdges();
+}
+
+// ═══════════════════════════════════════════════════
+//  ANNOTATION HOTSPOTS
+// ═══════════════════════════════════════════════════
+
+function loadDemoScene() {
+  const demos = [
+    { id:'obj-1', name:'The Archive', type:'artifact',
+      pos:{x:-3,y:0,z:1},
+      layers:[
+        { text:'A physical repository of knowledge — dust, decay, and discovery.', attestations:{} },
+        { text:'A metaphor for collective memory and institutional forgetting.', attestations:{} },
+      ], attestations:{affirm:3,contest:1,expand:2,ambig:0}, contributors:['Anonymous'], revisions:4 },
+    { id:'obj-2', name:'Threshold Event', type:'event',
+      pos:{x:2,y:0,z:-2},
+      layers:[
+        { text:'The moment before and after which nothing is the same.', attestations:{} },
+        { text:'Liminal: neither here nor there, but charged with potential.', attestations:{} },
+        { text:'In systems theory: a phase transition. In narrative: a turning point.', attestations:{} },
+      ], attestations:{affirm:5,contest:0,expand:4,ambig:2}, contributors:['Anonymous'], revisions:7 },
+    { id:'obj-3', name:'Resonance Loop', type:'process',
+      pos:{x:0,y:1,z:3},
+      layers:[
+        { text:'Feedback between observer and observed that amplifies meaning.', attestations:{} },
+      ], attestations:{affirm:1,contest:2,expand:1,ambig:3}, contributors:['Anonymous'], revisions:2 },
+    { id:'obj-4', name:'Polysemy Core', type:'concept',
+      pos:{x:-2,y:0.5,z:-3},
+      layers:[
+        { text:'The capacity of a single sign to carry multiple meanings simultaneously.', attestations:{} },
+        { text:'Not ambiguity — richness. The word holds all its histories at once.', attestations:{} },
+      ], attestations:{affirm:8,contest:0,expand:6,ambig:1}, contributors:['Anonymous'], revisions:12 },
+  ];
+
+  demos.forEach(obj => {
+    if (!state.objects.find(o => o.id === obj.id)) {
+      state.objects.push(obj);
+      spawnHotspot(obj);
+    }
+  });
+
+  toast('Demo scene loaded — click any glowing object');
+  persist();
+}
+
+function addHotspot() {
+  const obj = {
+    id: `obj-${Date.now()}`,
+    name: 'New Object',
+    type: state.defaultType,
+    pos: { x: (Math.random()-0.5)*8, y: (Math.random()-0.5)*2, z: (Math.random()-0.5)*8 },
+    layers: [{ text: '', attestations: {} }],
+    attestations: { affirm:0, contest:0, expand:0, ambig:0 },
+    contributors: [state.playerName],
+    revisions: 1,
+  };
+  state.objects.push(obj);
+  spawnHotspot(obj);
+  openModal(obj);
+  persist();
+}
+
+function spawnHotspot(obj) {
+  // Remove any existing el for this obj
+  document.getElementById(`hotspot-${obj.id}`)?.remove();
+
+  const container = document.getElementById('layer-annotations');
+  const color = TYPE_COLOR_HEX[obj.type] || '#7eb8e0';
+
+  const el = document.createElement('div');
+  el.className = 'annotation-hotspot';
+  el.id = `hotspot-${obj.id}`;
+  el.style.color = color;
+  el.style.pointerEvents = 'all';
+
+  // Ring + dot
+  const ring = document.createElement('div');
+  ring.className = 'hotspot-ring';
+  ring.style.cursor = 'grab';
+
+  const dot = document.createElement('div');
+  dot.className = 'hotspot-dot';
+  ring.appendChild(dot);
+
+  if (obj.layers?.length > 1) {
+    const lc = document.createElement('div');
+    lc.className = 'hotspot-layer-count';
+    lc.textContent = obj.layers.length;
+    ring.appendChild(lc);
+  }
+
+  // Label (click to open modal)
+  const label = document.createElement('div');
+  label.className = 'hotspot-label';
+  label.textContent = obj.name;
+
+  // Drag handle — the ring itself is the drag handle
+  ring.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+
+    // Connect mode: single click routes to connect handler
+    if (state.sceneMode === 'connect') {
+      handleConnectClick(obj.id);
+      e.stopPropagation();
+      return;
+    }
+
+    // Normal: Short click = open modal; drag = move node
+    const startX = e.clientX, startY = e.clientY;
+    let moved = false;
+
+    const onMove = mv => {
+      if (!moved && (Math.abs(mv.clientX-startX) > 4 || Math.abs(mv.clientY-startY) > 4)) {
+        moved = true;
+        startNodeDrag(mv, obj);
+      }
+    };
+    const onUp = upEv => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      if (!moved) openModal(obj);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    e.stopPropagation();
+  });
+
+  // Right-click to delete
+  el.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    if (confirm(`Remove node "${obj.name}"?`)) {
+      el.remove();
+      state.objects = state.objects.filter(o => o.id !== obj.id);
+      persist();
+      toast(`Node "${obj.name}" removed`);
+    }
+  });
+
+  el.appendChild(ring);
+  el.appendChild(label);
+  container.appendChild(el);
+  el.dataset.objId = obj.id;
+}
+
+function updateHotspotPositions() {
+  if (!renderer || !camera || state.tab !== 'scene') return;
+  const w = window.innerWidth, h = window.innerHeight;
+  state.objects.forEach(obj => {
+    const el = document.getElementById(`hotspot-${obj.id}`);
+    if (!el) return;
+
+    const vec = new THREE.Vector3(obj.pos.x, obj.pos.y ?? 0, obj.pos.z);
+    const dist = camera.position.distanceTo(vec);
+    vec.project(camera);
+
+    const x = (vec.x *  0.5 + 0.5) * w;
+    const y = (-vec.y * 0.5 + 0.5) * h;
+
+    if (vec.z > 1) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.style.left = `${x}px`;
+    el.style.top  = `${y}px`;
+
+    // Depth cue: scale + opacity based on distance
+    const scale = Math.max(0.4, Math.min(1.4, 8 / dist));
+    const opacity = Math.max(0.3, Math.min(1, 6 / dist));
+    el.style.transform = `translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+    el.style.opacity = opacity.toFixed(3);
+  });
+}
+
+function setMode(mode) {
+  state.sceneMode = mode;
+  state.connectFrom = null;
+  ['orbit','annotate','connect','erase'].forEach(m => {
+    document.getElementById(`btn-${m}`)?.classList.toggle('active', m === mode);
+  });
+  const eraserCursor = document.getElementById('eraser-cursor');
+  const eraserWrap   = document.getElementById('eraser-size-wrap');
+  const pendingLine  = document.getElementById('edge-pending-line');
+
+  if (mode === 'erase') {
+    eraserWrap.hidden = false;
+    document.body.style.cursor = 'none';
+  } else {
+    eraserWrap.hidden = true;
+    eraserCursor.style.display = 'none';
+    document.body.style.cursor = '';
+  }
+
+  if (mode === 'connect') {
+    toast('⌁ Connect: click a node to start, click another to draw an edge');
+    document.body.style.cursor = 'crosshair';
+  } else {
+    if (pendingLine) pendingLine.style.display = 'none';
+    if (mode !== 'erase') document.body.style.cursor = '';
+  }
+}
+
+function updatePointSize(val) {
+  if (!state.plyCloud) return;
+  state.plyCloud.material.size = val / 1000;
+  state.plyCloud.material.needsUpdate = true;
+}
+
+// ═══════════════════════════════════════════════════
+//  EDGE / GRAPH CONNECTION SYSTEM
+// ═══════════════════════════════════════════════════
+function addEdge(fromId, toId, label = '') {
+  const existing = state.edges.find(e =>
+    (e.fromId === fromId && e.toId === toId) ||
+    (e.fromId === toId   && e.toId === fromId));
+  if (existing) { toast('Edge already exists'); return; }
+  const edge = { id: `edge-${Date.now()}`, fromId, toId, label, type: 'relation' };
+  state.edges.push(edge);
+  renderEdges();
+  persist();
+  toast(`Edge drawn: ${getObjName(fromId)} → ${getObjName(toId)}`);
+}
+
+function removeEdge(edgeId) {
+  state.edges = state.edges.filter(e => e.id !== edgeId);
+  renderEdges();
+  persist();
+}
+
+function getObjName(id) {
+  return state.objects.find(o => o.id === id)?.name || id;
+}
+
+function getHotspotCenter(id) {
+  const el = document.getElementById(`hotspot-${id}`);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return { x: r.left + r.width/2, y: r.top + r.height/2 };
+}
+
+function renderEdges() {
+  const g = document.getElementById('edge-lines');
+  if (!g) return;
+  g.innerHTML = '';
+
+  state.edges.forEach(edge => {
+    const a = getHotspotCenter(edge.fromId);
+    const b = getHotspotCenter(edge.toId);
+    if (!a || !b) return;
+
+    const fromObj = state.objects.find(o => o.id === edge.fromId);
+    const color = TYPE_COLOR_HEX[fromObj?.type] || '#7eb8e0';
+
+    // Curved path via quadratic bezier
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2 - 30;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}`);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '1.2');
+    path.setAttribute('opacity', '0.5');
+    path.setAttribute('marker-end', `url(#arrow-${fromObj?.type || 'concept'})`);
+    path.style.cursor = 'pointer';
+    path.title = edge.label || 'edge';
+
+    // Right-click to delete edge
+    path.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (confirm(`Remove edge "${edge.label || 'unnamed'}"?`)) removeEdge(edge.id);
+    });
+
+    g.appendChild(path);
+
+    if (edge.label) {
+      const mid = getQuadraticPoint(a, {x:mx, y:my}, b, 0.5);
+      const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x', mid.x);
+      txt.setAttribute('y', mid.y - 4);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('class', 'edge-label-text');
+      txt.setAttribute('fill', color);
+      txt.textContent = edge.label;
+      g.appendChild(txt);
+    }
+  });
+}
+
+function getQuadraticPoint(p0, p1, p2, t) {
+  return {
+    x: (1-t)*(1-t)*p0.x + 2*(1-t)*t*p1.x + t*t*p2.x,
+    y: (1-t)*(1-t)*p0.y + 2*(1-t)*t*p1.y + t*t*p2.y,
+  };
+}
+
+// Connect mode: track pending line while mouse moves
+function setupConnectMode() {
+  const overlay = document.getElementById('edge-overlay');
+  const pending = document.getElementById('edge-pending-line');
+
+  window.addEventListener('mousemove', e => {
+    if (state.sceneMode !== 'connect' || !state.connectFrom) return;
+    const a = getHotspotCenter(state.connectFrom);
+    if (!a) return;
+    pending.setAttribute('x1', a.x); pending.setAttribute('y1', a.y);
+    pending.setAttribute('x2', e.clientX); pending.setAttribute('y2', e.clientY);
+    pending.style.display = '';
+  });
+}
+
+// Called when a node hotspot is clicked in connect mode
+function handleConnectClick(objId) {
+  if (!state.connectFrom) {
+    state.connectFrom = objId;
+    document.getElementById(`hotspot-${objId}`)?.classList.add('connecting');
+    toast(`⌁ Now click the target node`);
+  } else if (state.connectFrom === objId) {
+    state.connectFrom = null;
+    document.querySelectorAll('.connecting').forEach(el => el.classList.remove('connecting'));
+    document.getElementById('edge-pending-line').style.display = 'none';
+  } else {
+    const fromId = state.connectFrom;
+    const toId   = objId;
+    state.connectFrom = null;
+    document.querySelectorAll('.connecting').forEach(el => el.classList.remove('connecting'));
+    document.getElementById('edge-pending-line').style.display = 'none';
+
+    // Prompt for optional relation label
+    const label = prompt(`Label this edge (optional, e.g. "causes", "contains", "opposes"):`, '') ?? '';
+    addEdge(fromId, toId, label.trim());
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  WORLD FILE SYNC (shared folder approach)
+// ═══════════════════════════════════════════════════
+function buildWorldSnapshot() {
+  return {
+    version:     2,
+    exported:    new Date().toISOString(),
+    exportedBy:  state.playerName,
+    objects:     state.objects.map(o => ({
+      id: o.id, name: o.name, type: o.type, pos: o.pos,
+      layers: o.layers, attestations: o.attestations,
+      contributors: o.contributors, revisions: o.revisions,
+    })),
+    edges:  state.edges,
+    graph:  state.graph,
+    // API keys intentionally excluded
+  };
+}
+
+function exportWorldFile() {
+  const data = buildWorldSnapshot();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `semanticfield-world-${Date.now()}.json`;
+  a.click();
+  document.getElementById('sync-status').textContent =
+    `↓ Saved ${data.objects.length} nodes · ${data.edges.length} edges · ${new Date().toLocaleTimeString()}`;
+  toast(`World saved — share the file with collaborators`);
+}
+
+function importWorldFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      mergeWorldSnapshot(data);
+    } catch(err) {
+      toast(`Load error: ${err.message}`);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function mergeWorldSnapshot(data) {
+  if (!data.objects) { toast('Invalid world file'); return; }
+
+  let addedNodes = 0, updatedNodes = 0, addedEdges = 0;
+
+  // Merge nodes — add new, update existing with more revisions
+  data.objects.forEach(incoming => {
+    const existing = state.objects.find(o => o.id === incoming.id);
+    if (!existing) {
+      state.objects.push(incoming);
+      spawnHotspot(incoming);
+      addedNodes++;
+    } else if ((incoming.revisions || 0) > (existing.revisions || 0)) {
+      // Incoming is newer — merge contributors and layers
+      Object.assign(existing, incoming);
+      existing.contributors = [...new Set([
+        ...(existing.contributors || []),
+        ...(incoming.contributors || []),
+      ])];
+      spawnHotspot(existing); // re-render label
+      updatedNodes++;
+    }
+  });
+
+  // Merge edges
+  (data.edges || []).forEach(incoming => {
+    const exists = state.edges.find(e => e.id === incoming.id);
+    if (!exists) { state.edges.push(incoming); addedEdges++; }
+  });
+
+  // Merge graph nodes
+  (data.graph || []).forEach(incoming => {
+    if (!state.graph.find(g => g.id === incoming.id)) {
+      state.graph.push(incoming);
+    }
+  });
+
+  renderEdges();
+  renderGraphPanel();
+  persist();
+
+  const who = data.exportedBy ? ` from ${data.exportedBy}` : '';
+  const when = data.exported ? ` · ${new Date(data.exported).toLocaleTimeString()}` : '';
+  document.getElementById('sync-status').textContent =
+    `↑ Merged${who}${when} · +${addedNodes} nodes · ~${updatedNodes} updated · +${addedEdges} edges`;
+  toast(`World merged: +${addedNodes} new nodes, +${addedEdges} new edges`);
+}
+
+// ─── Eraser ───────────────────────────────────────────────────────────
+let eraserRadius = 0.5;  // world-space radius
+let isErasing = false;
+
+function updateEraserSize(val) {
+  eraserRadius = val * 0.12;
+  const px = val * 4;
+  const c = document.getElementById('eraser-cursor');
+  c.style.width  = px + 'px';
+  c.style.height = px + 'px';
+}
+
+function setupEraserEvents() {
+  const canvas = document.getElementById('scene-canvas');
+
+  window.addEventListener('mousemove', e => {
+    if (state.sceneMode !== 'erase') return;
+    const c = document.getElementById('eraser-cursor');
+    const sz = parseInt(document.getElementById('eraser-size-slider').value) * 4;
+    c.style.display = 'block';
+    c.style.left    = e.clientX + 'px';
+    c.style.top     = e.clientY + 'px';
+    c.style.width   = sz + 'px';
+    c.style.height  = sz + 'px';
+    if (isErasing) doErase(e);
+  });
+
+  canvas.addEventListener('mousedown', e => {
+    if (state.sceneMode !== 'erase' || !state.plyGeom) return;
+    isErasing = true;
+    doErase(e);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isErasing) {
+      isErasing = false;
+      // Commit this stroke as one undo step
+      if (state._eraseStroke?.length) {
+        state.plyEraseHistory.push(state._eraseStroke);
+        state._eraseStroke = null;
+      }
+    }
+  });
+}
+
+function doErase(e) {
+  if (!state.plyGeom || !state.plyVisible) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  const mx = ((e.clientX - rect.left) / rect.width)  *  2 - 1;
+  const my = -((e.clientY - rect.top)  / rect.height) *  2 + 1;
+
+  // Build a frustum-based erase: project each point to screen, check screen-space distance
+  // More accurate than world-space sphere for perspective view
+  const posAttr = state.plyPosAttr;
+  const visible  = state.plyVisible;
+  const origPos  = state.plyOrigPos;
+  const count    = state.plyCount;
+
+  const brushPx = parseInt(document.getElementById('eraser-size-slider').value) * 4;
+  const brushNDC = brushPx / rect.width; // NDC radius
+
+  if (!state._eraseStroke) state._eraseStroke = [];
+
+  const vec = new THREE.Vector4();
+  const proj = camera.projectionMatrix;
+  const view = camera.matrixWorldInverse;
+  const mvp  = new THREE.Matrix4().multiplyMatrices(proj, view);
+
+  let changed = false;
+  for (let i = 0; i < count; i++) {
+    if (!visible[i]) continue;
+
+    const ox = origPos[i*3], oy = origPos[i*3+1], oz = origPos[i*3+2];
+    vec.set(ox, oy, oz, 1).applyMatrix4(mvp);
+    if (vec.w <= 0) continue;
+
+    const sx = vec.x / vec.w;
+    const sy = vec.y / vec.w;
+    const dx = sx - mx, dy = sy - my;
+    if (dx*dx + dy*dy < brushNDC * brushNDC) {
+      // Erase: move to far away position
+      posAttr.array[i*3]   = 0;
+      posAttr.array[i*3+1] = 0;
+      posAttr.array[i*3+2] = -99999;
+      visible[i] = 0;
+      state._eraseStroke.push(i);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    posAttr.needsUpdate = true;
+  }
+}
+
+function undoErase() {
+  if (!state.plyEraseHistory?.length) { toast('Nothing to undo'); return; }
+  const stroke = state.plyEraseHistory.pop();
+  const posAttr = state.plyPosAttr;
+  const origPos  = state.plyOrigPos;
+  const visible  = state.plyVisible;
+
+  stroke.forEach(i => {
+    posAttr.array[i*3]   = origPos[i*3];
+    posAttr.array[i*3+1] = origPos[i*3+1];
+    posAttr.array[i*3+2] = origPos[i*3+2];
+    visible[i] = 1;
+  });
+  posAttr.needsUpdate = true;
+  toast(`Restored ${stroke.length.toLocaleString()} points`);
+}
+
+// ═══════════════════════════════════════════════════
+//  ANNOTATION MODAL
+// ═══════════════════════════════════════════════════
+function openModal(obj) {
+  state.currentObject = obj;
+  state.currentLayer = 0;
+
+  const modal = document.getElementById('annotation-modal');
+  const badge = document.getElementById('modal-type-badge');
+  const nameEl = document.getElementById('modal-obj-name');
+
+  badge.textContent = obj.type;
+  badge.style.color = TYPE_COLOR_HEX[obj.type] || 'var(--concept)';
+  badge.style.borderColor = TYPE_COLOR_HEX[obj.type] || 'var(--concept)';
+
+  nameEl.textContent = obj.name;
+  nameEl.contentEditable = true;
+  nameEl.onblur = () => {
+    obj.name = nameEl.textContent;
+    const label = document.getElementById(`hotspot-${obj.id}`)?.querySelector('.hotspot-label');
+    if (label) label.textContent = obj.name;
+    persist();
+  };
+
+  renderLayerTabs();
+  renderCurrentLayer();
+  renderAttestations();
+  updateAttachList();
+
+  document.getElementById('modal-contributor-count').textContent = obj.contributors?.length || 1;
+  document.getElementById('modal-revision-count').textContent = obj.revisions || 1;
+  document.getElementById('modal-llm-status').textContent = '';
+
+  modal.classList.add('open');
+  modal.style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('annotation-modal').classList.remove('open');
+  document.getElementById('annotation-modal').style.display = 'none';
+  state.currentObject = null;
+}
+
+function renderLayerTabs() {
+  const obj = state.currentObject;
+  const tabs = document.getElementById('layer-tabs');
+  const layerNames = ['Literal', 'Cultural', 'Contested', 'Speculative', 'Poetic', 'Technical'];
+
+  tabs.innerHTML = obj.layers.map((layer, i) => `
+    <div class="layer-tab ${i === state.currentLayer ? 'active' : ''} ${layer.text ? 'has-content' : ''}"
+      onclick="switchLayer(${i})">
+      <span class="layer-dot"></span>
+      ${layerNames[i] || `Layer ${i+1}`}
+    </div>
+  `).join('');
+
+  document.getElementById('dial-value-display').textContent = `${layerNames[state.currentLayer] || `Layer ${state.currentLayer+1}`}`;
+}
+
+function switchLayer(idx) {
+  // Save current layer text
+  saveCurrentLayerText();
+  state.currentLayer = idx;
+  renderLayerTabs();
+  renderCurrentLayer();
+}
+
+function saveCurrentLayerText() {
+  if (!state.currentObject) return;
+  const ta = document.querySelector('.layer-meaning-text');
+  if (ta && state.currentObject.layers[state.currentLayer]) {
+    state.currentObject.layers[state.currentLayer].text = ta.value;
+  }
+}
+
+function renderCurrentLayer() {
+  const obj = state.currentObject;
+  const body = document.getElementById('modal-body');
+  const layer = obj.layers[state.currentLayer];
+
+  body.innerHTML = `
+    <div class="meaning-layer active">
+      <textarea class="layer-meaning-text"
+        placeholder="Describe this meaning layer — what does this object signify from this perspective?"
+        oninput="markDirty()"
+      >${layer?.text || ''}</textarea>
+    </div>
+  `;
+}
+
+function markDirty() {
+  if (!state.currentObject) return;
+  const ta = document.querySelector('.layer-meaning-text');
+  if (ta && state.currentObject.layers[state.currentLayer]) {
+    state.currentObject.layers[state.currentLayer].text = ta.value;
+  }
+  if (!state.currentObject.contributors.includes(state.playerName)) {
+    state.currentObject.contributors.push(state.playerName);
+    document.getElementById('modal-contributor-count').textContent = state.currentObject.contributors.length;
+  }
+  state.currentObject.revisions = (state.currentObject.revisions||1) + 1;
+  document.getElementById('modal-revision-count').textContent = state.currentObject.revisions;
+  persist();
+}
+
+function addMeaningLayer() {
+  saveCurrentLayerText();
+  if (state.currentObject.layers.length >= 6) {
+    toast('Maximum 6 meaning layers'); return;
+  }
+  state.currentObject.layers.push({ text: '', attestations: {} });
+  state.currentLayer = state.currentObject.layers.length - 1;
+
+  // Update layer count badge on hotspot
+  const hotspot = document.getElementById(`hotspot-${state.currentObject.id}`);
+  if (hotspot) {
+    let lc = hotspot.querySelector('.hotspot-layer-count');
+    if (!lc) {
+      lc = document.createElement('div');
+      lc.className = 'hotspot-layer-count';
+      hotspot.querySelector('.hotspot-ring').appendChild(lc);
+    }
+    lc.textContent = state.currentObject.layers.length;
+  }
+
+  renderLayerTabs();
+  renderCurrentLayer();
+  addScore(5);
+  persist();
+}
+
+function renderAttestations() {
+  const a = state.currentObject?.attestations || {};
+  ['affirm','contest','expand','ambig'].forEach(type => {
+    const el = document.getElementById(`count-${type}`);
+    if (el) el.textContent = a[type] || 0;
+  });
+}
+
+function attest(type) {
+  if (!state.currentObject) return;
+  state.currentObject.attestations[type] = (state.currentObject.attestations[type]||0) + 1;
+  renderAttestations();
+  addScore(type === 'affirm' ? 5 : type === 'contest' ? 8 : 5);
+  persist();
+  toast(`Attestation recorded: ${type}`);
+}
+
+// ═══════════════════════════════════════════════════
+//  LLM EVOLUTION IN MODAL
+// ═══════════════════════════════════════════════════
+async function evolveAnnotation() {
+  if (!requireKey()) return;
+  const obj = state.currentObject;
+  if (!obj) return;
+  saveCurrentLayerText();
+
+  const promptEl = document.getElementById('modal-llm-input');
+  const prompt = promptEl.value.trim();
+  const currentText = obj.layers[state.currentLayer]?.text || '';
+
+  const statusEl = document.getElementById('modal-llm-status');
+  const btn = document.getElementById('modal-llm-send');
+
+  btn.disabled = true;
+  statusEl.textContent = '◈ thinking…';
+  statusEl.classList.add('thinking');
+
+  const paletteContext = state.palette.length
+    ? `Palette tokens available: ${state.palette.map(t => `${t.word}(${t.type})`).join(', ')}`
+    : '';
+
+  const allLayersContext = obj.layers.map((l, i) =>
+    `Layer ${i+1}: ${l.text || '(empty)'}`).join('\n');
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: getAPIHeaders(),
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: `You are the co-intelligence of SEMANTIC FIELD, a meaning refinement game. 
+You help players collaboratively evolve the semantic meaning of objects in a 3D spatial scene.
+Each object has multiple meaning layers representing different ontological perspectives.
+Write with depth, precision, and philosophical richness — but stay grounded.
+Return ONLY the evolved text for the current meaning layer. No preamble. No explanation.`,
+        messages: [{
+          role: 'user',
+          content: `Object: "${obj.name}" (type: ${obj.type})
+Current layer being edited (${['Literal','Cultural','Contested','Speculative','Poetic','Technical'][state.currentLayer]}):
+${currentText || '(empty)'}
+
+All layers for context:
+${allLayersContext}
+
+${paletteContext}
+
+Player instruction: ${prompt || 'Evolve this meaning layer — deepen, refine, or add nuance'}
+
+Return only the evolved layer text.`,
+        }],
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    const evolved = data.content?.map(b => b.text || '').join('').trim() || '';
+
+    if (evolved) {
+      obj.layers[state.currentLayer].text = evolved;
+      renderCurrentLayer();
+      addScore(15);
+      persist();
+      statusEl.textContent = '✓ Evolved';
+      statusEl.classList.remove('thinking');
+      promptEl.value = '';
+    }
+  } catch(err) {
+    statusEl.textContent = `Error: ${err.message}`;
+    statusEl.classList.remove('thinking');
+  }
+
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════
+//  FILE UPLOAD
+// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  PLY PARSER — reads ASCII + binary PLY point clouds
+// ═══════════════════════════════════════════════════
+function parsePLY(buffer) {
+  const bytes = new Uint8Array(buffer);
+
+  // ── 1. Find end_header byte position, works for \n and \r\n ──────────
+  let dataStart = -1;
+  for (let i = 0; i < bytes.length - 10; i++) {
+    // look for 'e','n','d','_','h','e','a','d','e','r'
+    if (bytes[i]===101 && bytes[i+1]===110 && bytes[i+2]===100 &&
+        bytes[i+3]===95  && bytes[i+4]===104 && bytes[i+5]===101 &&
+        bytes[i+6]===97  && bytes[i+7]===100 && bytes[i+8]===101 &&
+        bytes[i+9]===114) {
+      // skip past the newline(s) after end_header
+      let j = i + 10;
+      if (bytes[j] === 13) j++; // \r
+      if (bytes[j] === 10) j++; // \n
+      dataStart = j;
+      break;
+    }
+  }
+  if (dataStart < 0) throw new Error('No end_header found');
+
+  // ── 2. Decode only the header part ────────────────────────────────────
+  const headerText = new TextDecoder('ascii').decode(bytes.subarray(0, dataStart));
+  const headerLines = headerText.split(/\r?\n/);
+
+  let vertexCount = 0;
+  let isBinary = false, isLE = true;
+  let upAxis = 'y'; // default Y-up (Lixel, Polycam, most exporters)
+  const props = [];
+  let inVertexElement = false;
+
+  // Scan comments for axis hints
+  for (const raw of headerLines) {
+    const line = raw.trim().toLowerCase();
+    // Lixel / some exporters write: "comment up_axis Z" or "obj_info up_axis Z"
+    if (line.includes('up_axis')) {
+      if (line.includes(' z')) upAxis = 'z';
+      else if (line.includes(' y')) upAxis = 'y';
+      else if (line.includes(' x')) upAxis = 'x';
+    }
+    // Some tools write "comment axis_up Z"
+    if (line.includes('axis_up')) {
+      if (line.includes('z')) upAxis = 'z';
+    }
+  }
+
+  // Map PLY type → { size, reader(view, offset, le) }
+  const TYPE_INFO = {
+    char:    { size: 1, read: (v,o,le) => v.getInt8(o) },
+    uchar:   { size: 1, read: (v,o,le) => v.getUint8(o) },
+    uint8:   { size: 1, read: (v,o,le) => v.getUint8(o) },
+    short:   { size: 2, read: (v,o,le) => v.getInt16(o,le) },
+    ushort:  { size: 2, read: (v,o,le) => v.getUint16(o,le) },
+    int:     { size: 4, read: (v,o,le) => v.getInt32(o,le) },
+    uint:    { size: 4, read: (v,o,le) => v.getUint32(o,le) },
+    int32:   { size: 4, read: (v,o,le) => v.getInt32(o,le) },
+    uint32:  { size: 4, read: (v,o,le) => v.getUint32(o,le) },
+    float:   { size: 4, read: (v,o,le) => v.getFloat32(o,le) },
+    float32: { size: 4, read: (v,o,le) => v.getFloat32(o,le) },
+    double:  { size: 8, read: (v,o,le) => v.getFloat64(o,le) },
+    float64: { size: 8, read: (v,o,le) => v.getFloat64(o,le) },
+  };
+
+  for (const raw of headerLines) {
+    const line = raw.trim();
+    if (!line || line === 'ply') continue;
+    if (line.startsWith('format ascii'))                    { isBinary = false; }
+    if (line.startsWith('format binary_little_endian'))     { isBinary = true;  isLE = true; }
+    if (line.startsWith('format binary_big_endian'))        { isBinary = true;  isLE = false; }
+    if (line.startsWith('element vertex'))                  { vertexCount = parseInt(line.split(/\s+/)[2]); inVertexElement = true; }
+    if (line.startsWith('element') && !line.startsWith('element vertex')) { inVertexElement = false; }
+    if (line.startsWith('property') && inVertexElement) {
+      const parts = line.split(/\s+/);
+      if (parts[1] === 'list') continue; // skip list properties (faces)
+      const typeName = parts[1];
+      const propName = parts[2];
+      const info = TYPE_INFO[typeName];
+      if (info) props.push({ name: propName, typeName, size: info.size, read: info.read });
+    }
+  }
+
+  if (vertexCount === 0) throw new Error('No vertices found in PLY');
+
+  // ── 3. Map property names → indices ───────────────────────────────────
+  const idx = {};
+  props.forEach((p, i) => { idx[p.name] = i; });
+
+  console.log('PLY properties:', Object.keys(idx).join(', '));
+
+  const xI = idx['x']  ?? idx['px'] ?? -1;
+  const yI = idx['y']  ?? idx['py'] ?? -1;
+  const zI = idx['z']  ?? idx['pz'] ?? -1;
+
+  // Color source priority:
+  // 1. Standard uchar RGB (most PLY exports)
+  // 2. float RGB normalized 0-1
+  // 3. Gaussian splat spherical harmonic DC coefficients (f_dc_0/1/2)
+  // 4. Lixel/Polycam may use nx/ny/nz tinted or scalar_red etc.
+  const rI = idx['red']    ?? idx['r']           ?? -1;
+  const gI = idx['green']  ?? idx['g']           ?? -1;
+  const bI = idx['blue']   ?? idx['b']           ?? -1;
+  const dcR = idx['f_dc_0'] ?? idx['features_dc_0'] ?? -1;
+  const dcG = idx['f_dc_1'] ?? idx['features_dc_1'] ?? -1;
+  const dcB = idx['f_dc_2'] ?? idx['features_dc_2'] ?? -1;
+
+  // Detect which color mode we have
+  const hasUcharRGB  = rI >= 0 && props[rI]?.size === 1;
+  const hasFloatRGB  = rI >= 0 && props[rI]?.size > 1;
+  const hasGaussianSH = dcR >= 0;
+
+  console.log(`Color mode: ucharRGB=${hasUcharRGB}, floatRGB=${hasFloatRGB}, gaussianSH=${hasGaussianSH}`);
+
+  if (xI < 0 || yI < 0 || zI < 0) throw new Error('PLY missing x/y/z properties');
+
+  const stride = props.reduce((s, p) => s + p.size, 0);
+
+  // ── 4. Parse vertices ─────────────────────────────────────────────────
+  const positions = new Float32Array(vertexCount * 3);
+  const colors    = new Float32Array(vertexCount * 3);
+
+  if (isBinary) {
+    // Precompute byte offsets for each property
+    const offsets = [];
+    let off = 0;
+    props.forEach(p => { offsets.push(off); off += p.size; });
+
+    const view = new DataView(buffer);
+    let bytePos = dataStart;
+
+    for (let i = 0; i < vertexCount; i++) {
+      // Guard against running off end of buffer
+      if (bytePos + stride > buffer.byteLength) {
+        console.warn(`PLY: truncated at vertex ${i}/${vertexCount}`);
+        break;
+      }
+      const readProp = (propIdx) => {
+        if (propIdx < 0) return -1;
+        return props[propIdx].read(view, bytePos + offsets[propIdx], isLE);
+      };
+
+      positions[i*3]   = readProp(xI);
+      positions[i*3+1] = readProp(yI);
+      positions[i*3+2] = readProp(zI);
+
+      let cr, cg, cb;
+      if (hasUcharRGB) {
+        // Standard uchar 0-255
+        cr = readProp(rI) / 255;
+        cg = readProp(gI) / 255;
+        cb = readProp(bI) / 255;
+      } else if (hasGaussianSH) {
+        // Gaussian splat spherical harmonic DC: convert from SH to linear color
+        // SH DC coefficient → color: C = 0.5 + SH_DC * 0.28209 (SH C0 constant)
+        const SH_C0 = 0.28209479177387814;
+        cr = Math.max(0, Math.min(1, 0.5 + readProp(dcR) * SH_C0));
+        cg = Math.max(0, Math.min(1, 0.5 + readProp(dcG) * SH_C0));
+        cb = Math.max(0, Math.min(1, 0.5 + readProp(dcB) * SH_C0));
+      } else if (hasFloatRGB) {
+        // Float 0-1 RGB
+        cr = Math.max(0, Math.min(1, readProp(rI)));
+        cg = Math.max(0, Math.min(1, readProp(gI)));
+        cb = Math.max(0, Math.min(1, readProp(bI)));
+      } else {
+        // No color data — use a soft blue-grey
+        cr = 0.55; cg = 0.65; cb = 0.75;
+      }
+      colors[i*3] = cr; colors[i*3+1] = cg; colors[i*3+2] = cb;
+
+      bytePos += stride;
+    }
+
+  } else {
+    // ASCII — re-decode entire file for data section
+    const fullText = new TextDecoder('ascii').decode(bytes);
+    const allLines = fullText.split(/\r?\n/);
+    // find end_header line index
+    let dataLineStart = 0;
+    for (let i = 0; i < allLines.length; i++) {
+      if (allLines[i].trim() === 'end_header') { dataLineStart = i + 1; break; }
+    }
+    for (let i = 0; i < vertexCount; i++) {
+      const lineIdx = dataLineStart + i;
+      if (lineIdx >= allLines.length) break;
+      const vals = allLines[lineIdx].trim().split(/\s+/).map(Number);
+      positions[i*3]   = xI >= 0 ? vals[xI] : 0;
+      positions[i*3+1] = yI >= 0 ? vals[yI] : 0;
+      positions[i*3+2] = zI >= 0 ? vals[zI] : 0;
+
+      let cr, cg, cb;
+      if (hasUcharRGB) {
+        cr = (vals[rI] ?? 140) / 255;
+        cg = (vals[gI] ?? 160) / 255;
+        cb = (vals[bI] ?? 200) / 255;
+      } else if (hasGaussianSH) {
+        const SH_C0 = 0.28209479177387814;
+        cr = Math.max(0, Math.min(1, 0.5 + (vals[dcR]??0) * SH_C0));
+        cg = Math.max(0, Math.min(1, 0.5 + (vals[dcG]??0) * SH_C0));
+        cb = Math.max(0, Math.min(1, 0.5 + (vals[dcB]??0) * SH_C0));
+      } else if (hasFloatRGB) {
+        cr = Math.max(0, Math.min(1, vals[rI] ?? 0.55));
+        cg = Math.max(0, Math.min(1, vals[gI] ?? 0.65));
+        cb = Math.max(0, Math.min(1, vals[bI] ?? 0.75));
+      } else {
+        cr = 0.55; cg = 0.65; cb = 0.75;
+      }
+      colors[i*3] = cr; colors[i*3+1] = cg; colors[i*3+2] = cb;
+    }
+  }
+
+  // ── 5. Center & normalize to ~10 units ───────────────────────────────
+  let minX=Infinity, minY=Infinity, minZ=Infinity;
+  let maxX=-Infinity, maxY=-Infinity, maxZ=-Infinity;
+  for (let i = 0; i < vertexCount; i++) {
+    if (!isFinite(positions[i*3])) continue;
+    minX=Math.min(minX,positions[i*3]);   maxX=Math.max(maxX,positions[i*3]);
+    minY=Math.min(minY,positions[i*3+1]); maxY=Math.max(maxY,positions[i*3+1]);
+    minZ=Math.min(minZ,positions[i*3+2]); maxZ=Math.max(maxZ,positions[i*3+2]);
+  }
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2, cz=(minZ+maxZ)/2;
+  const span = Math.max(maxX-minX, maxY-minY, maxZ-minZ, 0.001);
+  const scale = 10 / span;
+  for (let i = 0; i < vertexCount; i++) {
+    positions[i*3]   = (positions[i*3]   - cx) * scale;
+    positions[i*3+1] = (positions[i*3+1] - cy) * scale;
+    positions[i*3+2] = (positions[i*3+2] - cz) * scale;
+  }
+
+  console.log(`PLY parsed: ${vertexCount} verts, binary=${isBinary}, stride=${stride}, upAxis=${upAxis}, props=[${props.map(p=>p.name).join(',')}]`);
+  const colorMode = hasGaussianSH ? 'SH' : hasUcharRGB ? 'RGB' : hasFloatRGB ? 'fRGB' : 'none';
+  return { positions, colors, vertexCount, colorMode, upAxis };
+}
+
+function loadPLYIntoScene(buffer, filename) {
+  try {
+    toast('Parsing point cloud…');
+    const { positions, colors, vertexCount, colorMode, upAxis } = parsePLY(buffer);
+
+    // Remove existing clouds
+    const existing = scene3d.getObjectByName('ply_cloud');
+    if (existing) scene3d.remove(existing);
+    const demoCloud = scene3d.getObjectByName('demo_cloud');
+    if (demoCloud) scene3d.remove(demoCloud);
+
+    // Keep up to 1M points
+    const maxPts = 1_000_000;
+    const step = Math.max(1, Math.floor(vertexCount / maxPts));
+    const sampledCount = Math.ceil(vertexCount / step);
+
+    const pos2    = new Float32Array(sampledCount * 3);
+    const col2    = new Float32Array(sampledCount * 3);
+    const origPos = new Float32Array(sampledCount * 3);
+    const visible = new Uint8Array(sampledCount).fill(1);
+
+    for (let i = 0; i < sampledCount; i++) {
+      const s = i * step;
+      pos2[i*3]   = origPos[i*3]   = positions[s*3];
+      pos2[i*3+1] = origPos[i*3+1] = positions[s*3+1];
+      pos2[i*3+2] = origPos[i*3+2] = positions[s*3+2];
+      col2[i*3]   = colors[s*3];
+      col2[i*3+1] = colors[s*3+1];
+      col2[i*3+2] = colors[s*3+2];
+    }
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(pos2, 3));
+    geom.setAttribute('color',    new THREE.BufferAttribute(col2, 3));
+
+    const ptSize = sampledCount > 500000 ? 0.012 : sampledCount > 200000 ? 0.018 : 0.025;
+    const mat = new THREE.PointsMaterial({
+      size: ptSize, vertexColors: true, transparent: false, opacity: 1.0, sizeAttenuation: true,
+    });
+    const cloud = new THREE.Points(geom, mat);
+    cloud.name = 'ply_cloud';
+
+    // ── Axis correction ──────────────────────────────────────────────
+    // Lixel/3DGS exports are typically Z-up (camera looks along -Y in COLMAP convention)
+    // Polycam is usually Y-up. We normalise everything to Y-up for Three.js
+    if (upAxis === 'z') {
+      cloud.rotation.x = -Math.PI / 2;  // rotate Z-up → Y-up
+    } else if (upAxis === 'x') {
+      cloud.rotation.z = Math.PI / 2;
+    }
+    // Y-up: no rotation needed
+
+    scene3d.add(cloud);
+
+    // ── Compute world-space bounding box after rotation ──────────────
+    geom.computeBoundingBox();
+    const bbox = new THREE.Box3();
+    bbox.setFromObject(cloud); // accounts for rotation
+
+    const center = new THREE.Vector3();
+    bbox.getCenter(center);
+    const size   = new THREE.Vector3();
+    bbox.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+
+    // ── Snap ground plane to bottom of cloud ────────────────────────
+    const floorY = bbox.min.y - 0.05;
+    const ground = scene3d.getObjectByName('ground_plane');
+    const grid   = scene3d.getObjectByName('grid_helper');
+    if (ground) ground.position.y = floorY;
+    if (grid)   grid.position.y   = floorY + 0.01;
+
+    // ── Set orbit target to cloud centroid ──────────────────────────
+    cameraTarget.copy(center);
+    cameraRadius = maxDim * 1.6;
+    cameraPhi    = 0.9;   // ~50° above horizon — good "outside looking in" angle
+    cameraTheta  = 0.4;
+    updateCamera();
+
+    // ── Store refs for eraser + slider ──────────────────────────────
+    state.plyCloud   = cloud;
+    state.plyGeom    = geom;
+    state.plyPosAttr = geom.attributes.position;
+    state.plyOrigPos = origPos;
+    state.plyVisible = visible;
+    state.plyCount   = sampledCount;
+    state.plyEraseHistory = [];
+
+    const sliderDefault = Math.round(ptSize * 40000);
+    document.getElementById('point-size-slider').value = Math.max(1, Math.min(40, sliderDefault));
+
+    state.plyBounds   = bbox;
+    state.plyLoaded   = true;
+    state.plyFilename = filename;
+
+    toast(`✓ ${filename} · ${sampledCount.toLocaleString()} pts · ${colorMode} · up:${upAxis}`);
+    document.getElementById('scene-info').textContent =
+      `${filename} · Drag: orbit · Scroll: zoom · Alt+drag: pan · Dbl-click: reset`;
+    document.getElementById('btn-undo').style.display = 'inline-flex';
+
+  } catch(err) {
+    console.error('PLY parse error:', err);
+    toast(`PLY error: ${err.message}`);
+  }
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'json') {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data['@graph']) {
+          data['@graph'].forEach(node => {
+            const id = node['@id']?.replace('sf:','') || `node-${Date.now()}`;
+            state.graph.push({
+              id, name: node['sf:name'] || 'Imported Node',
+              type: node['@type']?.replace('sf:','').toLowerCase() || 'concept',
+              layers: node['sf:layers'] || [{ text:'', attestations:{} }],
+              attestations: node['sf:attestations'] || {},
+              contributors: node['sf:contributors'] || ['Imported'],
+              revisions: node['sf:revisions'] || 1,
+            });
+          });
+          renderGraphPanel();
+          toast(`Imported ${data['@graph'].length} nodes from JSON-LD`);
+        }
+      } catch(err) { toast('Invalid JSON file'); }
+    };
+    reader.readAsText(file);
+
+  } else if (ext === 'ply' || ext === 'splat') {
+    initScene();         // make sure renderer is up
+    enterScene();
+    const reader = new FileReader();
+    reader.onload = e => loadPLYIntoScene(e.target.result, file.name);
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+// Drag & drop
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('active');
+});
+document.addEventListener('dragleave', () => {
+  document.getElementById('drop-zone').classList.remove('active');
+});
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('active');
+  if (e.dataTransfer.files[0]) handleFileUpload({ target: { files: e.dataTransfer.files } });
+});
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+function addScore(pts) {
+  state.playerScore += pts;
+  document.getElementById('player-score').textContent = state.playerScore;
+}
+
+function toast(msg, color = 'var(--concept)') {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.borderLeftColor = color;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3200);
+}
+
+document.getElementById('player-name').addEventListener('input', e => {
+  state.playerName = e.target.value || 'Anonymous';
+});
+
+// Close modal on backdrop click
+document.getElementById('annotation-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+loadPersisted().then(() => {
+  renderGraphPanel();
+});
+</script>
+</body>
+</html>
