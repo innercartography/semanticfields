@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEMANTIC FIELD — Tutorial</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:     #07090e;
+  --deep:     #0b0e16;
+  --surface:  #10141f;
+  --panel:    #161c2a;
+  --border:   #1e2d45;
+  --muted:    #2e4060;
+  --dim:      #4a6580;
+  --soft:     #7a9fb5;
+  --bright:   #bdd8ee;
+  --white:    #e8f2f8;
+  --event:    #e8724a;
+  --concept:  #7eb8e0;
+  --process:  #6bcf9e;
+  --relation: #c99fe8;
+  --artifact: #f0cc6a;
+  --ui:       'DM Mono', monospace;
+  --display:  'Bebas Neue', sans-serif;
+  --body:     'Crimson Pro', serif;
+  --mono:     'Share Tech Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--bright);
+  font-family: var(--body);
+  overflow-x: hidden;
+}
+
+/* ── STARFIELD ─────────────────────────────────── */
+#starfield {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+
+/* ── HYPERSPACE HERO ───────────────────────────── */
+.hero {
+  position: relative; z-index: 10;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  overflow: hidden;
+}
+
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(126,184,224,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(126,184,224,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  transform: perspective(800px) rotateX(20deg) scaleY(1.4);
+  transform-origin: bottom center;
+  animation: gridPulse 8s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+  0%,100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+.hero-beams {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 120%, rgba(126,184,224,0.12), transparent),
+              radial-gradient(ellipse 40% 30% at 20% 80%, rgba(107,207,158,0.08), transparent),
+              radial-gradient(ellipse 40% 30% at 80% 80%, rgba(201,159,232,0.08), transparent);
+}
+
+.wordmark {
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 12vw, 9rem);
+  letter-spacing: 0.2em;
+  line-height: 0.9;
+  position: relative; z-index: 2;
+  animation: heroIn 1.2s ease both;
+}
+
+.wordmark-main { color: var(--white); display: block; }
+.wordmark-sub  { color: var(--concept); display: block; }
+
+.hero-tagline {
+  font-family: var(--ui);
+  font-size: clamp(0.55rem, 2vw, 0.75rem);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-top: 1.5rem;
+  position: relative; z-index: 2;
+  animation: heroIn 1.2s 0.2s ease both;
+}
+
+.hero-desc {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-style: italic;
+  color: var(--soft);
+  max-width: 560px;
+  line-height: 1.7;
+  margin-top: 1.5rem;
+  position: relative; z-index: 2;
+  animation: heroIn 1.2s 0.4s ease both;
+}
+
+@keyframes heroIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-badges {
+  display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 2rem;
+  position: relative; z-index: 2;
+  animation: heroIn 1.2s 0.6s ease both;
+}
+
+.badge {
+  font-family: var(--ui);
+  font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid currentColor;
+}
+
+.badge-concept  { color: var(--concept); }
+.badge-process  { color: var(--process); }
+.badge-event    { color: var(--event); }
+.badge-relation { color: var(--relation); }
+.badge-artifact { color: var(--artifact); }
+
+.scroll-hint {
+  position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  font-family: var(--ui); font-size: 0.55rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--muted);
+  animation: bounce 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes bounce {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ── CTA BUTTONS ───────────────────────────────── */
+.cta-row {
+  display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 2.5rem;
+  position: relative; z-index: 2;
+  animation: heroIn 1.2s 0.7s ease both;
+}
+
+.btn-primary {
+  font-family: var(--display);
+  font-size: 1rem; letter-spacing: 0.15em;
+  padding: 0.8rem 2.5rem;
+  background: var(--concept);
+  color: var(--void);
+  border: none; cursor: pointer;
+  text-decoration: none; display: inline-block;
+  transition: all 0.2s;
+}
+.btn-primary:hover { background: var(--white); transform: translateY(-2px); }
+
+.btn-ghost {
+  font-family: var(--ui);
+  font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: var(--soft);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none; display: inline-block;
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--soft); color: var(--bright); }
+
+/* ── SECTION WRAPPER ───────────────────────────── */
+section {
+  position: relative; z-index: 10;
+  padding: 5rem 2rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-divider {
+  position: relative; z-index: 10;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: 0 2rem;
+}
+
+/* ── SECTION HEADERS ───────────────────────────── */
+.section-eyebrow {
+  font-family: var(--ui);
+  font-size: 0.55rem; letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--concept);
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: clamp(2rem, 6vw, 4rem);
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+
+.section-title span { color: var(--concept); }
+
+.section-body {
+  font-size: 1.1rem; line-height: 1.8;
+  color: var(--soft); max-width: 560px;
+}
+
+/* ── OVERVIEW GRID ─────────────────────────────── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 3rem;
+}
+
+.overview-card {
+  background: var(--deep);
+  padding: 1.5rem;
+  transition: background 0.2s;
+}
+.overview-card:hover { background: var(--surface); }
+
+.oc-icon {
+  font-size: 1.5rem; margin-bottom: 0.8rem;
+}
+
+.oc-title {
+  font-family: var(--display);
+  font-size: 1.1rem; letter-spacing: 0.1em;
+  color: var(--white); margin-bottom: 0.4rem;
+}
+
+.oc-desc {
+  font-size: 0.85rem; line-height: 1.6;
+  color: var(--dim);
+}
+
+/* ── TUTORIAL STEPS ────────────────────────────── */
+.steps-container {
+  margin-top: 3rem;
+  display: flex; flex-direction: column; gap: 0;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
+  padding: 4rem 0;
+  border-bottom: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.step.visible {
+  opacity: 1; transform: translateY(0);
+}
+
+.step:nth-child(even) .step-visual { order: -1; }
+.step:last-child { border-bottom: none; }
+
+.step-num {
+  font-family: var(--display);
+  font-size: 0.75rem; letter-spacing: 0.3em;
+  color: var(--muted); margin-bottom: 0.5rem;
+}
+
+.step-title {
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  letter-spacing: 0.08em;
+  color: var(--white);
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.step-title span { color: var(--concept); }
+
+.step-desc {
+  font-size: 1.05rem; line-height: 1.8;
+  color: var(--soft);
+  margin-bottom: 1.5rem;
+}
+
+.step-tips {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+
+.step-tips li {
+  font-family: var(--ui);
+  font-size: 0.6rem; letter-spacing: 0.08em;
+  color: var(--dim);
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  line-height: 1.5;
+}
+
+.step-tips li::before {
+  content: '◈';
+  color: var(--concept);
+  flex-shrink: 0;
+  margin-top: 0.05em;
+}
+
+/* ── UI MOCKUPS (SVG illustrations) ─────────────── */
+.step-visual {
+  position: relative;
+}
+
+.mockup {
+  width: 100%;
+  background: var(--deep);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--ui);
+}
+
+.mockup-bar {
+  height: 32px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0 0.8rem;
+}
+
+.mockup-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+
+.mockup-title {
+  font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); margin-left: auto; margin-right: auto;
+}
+
+.mockup-body {
+  padding: 1rem;
+  min-height: 200px;
+  position: relative;
+}
+
+/* flip board mockup */
+.flip-board-mock {
+  background: #080b10;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  margin-bottom: 0.8rem;
+}
+
+.flip-row-mock {
+  display: flex; gap: 3px; margin-bottom: 3px; flex-wrap: wrap;
+}
+
+.flip-char-mock {
+  width: 18px; height: 24px;
+  background: #0d1118;
+  border: 1px solid #1a2535;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--bright);
+  position: relative;
+}
+
+.flip-char-mock::after {
+  content: '';
+  position: absolute; top: 50%; left: 0; right: 0; height: 1px;
+  background: rgba(200,228,240,0.06);
+}
+
+.flip-char-mock.lit  { color: var(--concept); border-color: var(--concept); background: rgba(126,184,224,0.1); }
+.flip-char-mock.sp   { background: transparent; border-color: transparent; }
+
+.mock-input-row {
+  display: flex; gap: 0;
+}
+
+.mock-input {
+  flex: 1; background: var(--surface); border: 1px solid var(--border);
+  border-right: none; padding: 0.4rem 0.6rem;
+  font-family: var(--body); font-size: 0.8rem; font-style: italic;
+  color: var(--dim);
+}
+
+.mock-send {
+  background: var(--concept); color: var(--void);
+  padding: 0.4rem 0.8rem;
+  font-family: var(--display); font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+/* palette mockup */
+.mock-tokens {
+  display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0.6rem;
+}
+
+.mock-token {
+  padding: 0.2rem 0.5rem;
+  font-family: var(--ui); font-size: 0.55rem; letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+}
+
+.mt-event    { color: var(--event);    background: rgba(232,114,74,0.1); }
+.mt-concept  { color: var(--concept);  background: rgba(126,184,224,0.1); }
+.mt-process  { color: var(--process);  background: rgba(107,207,158,0.1); }
+.mt-relation { color: var(--relation); background: rgba(201,159,232,0.1); }
+.mt-artifact { color: var(--artifact); background: rgba(240,204,106,0.1); }
+
+/* scene mockup */
+.mock-scene {
+  background: #07090e;
+  min-height: 220px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mock-particle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+
+.mock-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.mock-ring {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex; align-items: center; justify-content: center;
+  animation: pulseRing 2s ease-in-out infinite;
+}
+
+@keyframes pulseRing {
+  0%,100% { box-shadow: 0 0 0 0 currentColor; }
+  50%      { box-shadow: 0 0 0 6px transparent; }
+}
+
+.mock-dot-inner {
+  width: 7px; height: 7px; border-radius: 50%; background: currentColor;
+}
+
+.mock-node-label {
+  position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-size: 0.4rem; letter-spacing: 0.1em; text-transform: uppercase;
+  background: rgba(7,9,14,0.9); border: 1px solid currentColor;
+  padding: 0.15rem 0.35rem; color: currentColor;
+}
+
+.mock-grid-line {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: repeating-linear-gradient(
+    90deg, transparent, transparent 29px, rgba(30,45,69,0.4) 29px, rgba(30,45,69,0.4) 30px
+  );
+  height: 60px;
+}
+
+/* annotation modal mockup */
+.mock-modal {
+  background: var(--deep); border: 1px solid var(--border);
+}
+
+.mock-modal-header {
+  padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.6rem;
+}
+
+.mock-type-pill {
+  font-size: 0.45rem; letter-spacing: 0.15em; text-transform: uppercase;
+  padding: 0.2rem 0.5rem; border: 1px solid currentColor;
+}
+
+.mock-obj-name {
+  font-family: var(--display); font-size: 1rem; letter-spacing: 0.08em; color: var(--white);
+}
+
+.mock-layer-tabs {
+  display: flex; gap: 0; padding: 0.5rem 0.8rem; border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.mock-ltab {
+  font-size: 0.45rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.25rem 0.6rem; border: 1px solid var(--border);
+  color: var(--muted); white-space: nowrap;
+}
+
+.mock-ltab.active { border-color: var(--concept); color: var(--concept); }
+.mock-ltab.filled { border-color: var(--muted); }
+
+.mock-layer-body {
+  padding: 0.8rem;
+  font-family: var(--body); font-size: 0.75rem; font-style: italic;
+  color: var(--soft); line-height: 1.6; min-height: 60px;
+}
+
+.mock-attest-row {
+  display: flex; gap: 0.4rem; padding: 0.5rem 0.8rem; border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.mock-attest {
+  font-size: 0.45rem; letter-spacing: 0.08em; padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border); color: var(--dim);
+}
+
+.mock-attest.affirm  { color: var(--process); border-color: var(--process); }
+.mock-attest.contest { color: var(--event);   border-color: var(--event); }
+
+.mock-llm-row {
+  display: flex; gap: 0; padding: 0.5rem 0.8rem; background: rgba(126,184,224,0.03);
+}
+
+.mock-llm-input {
+  flex: 1; background: var(--surface); border: 1px solid var(--border); border-right: none;
+  padding: 0.3rem 0.5rem; font-family: var(--body); font-size: 0.7rem; font-style: italic; color: var(--dim);
+}
+
+.mock-llm-send {
+  background: var(--concept); color: var(--void); padding: 0.3rem 0.6rem;
+  font-family: var(--ui); font-size: 0.45rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* graph mockup */
+.mock-graph-node {
+  border: 1px solid var(--border); padding: 0.5rem 0.7rem;
+  margin-bottom: 0.5rem; background: rgba(255,255,255,0.01);
+}
+
+.mgn-type {
+  font-size: 0.45rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.2rem;
+}
+
+.mgn-name {
+  font-family: var(--body); font-size: 0.85rem; color: var(--bright); margin-bottom: 0.2rem;
+}
+
+.mgn-meta { font-size: 0.45rem; color: var(--muted); letter-spacing: 0.06em; }
+
+/* eraser mockup */
+.mock-controls {
+  display: flex; gap: 0.3rem; padding: 0.5rem; background: rgba(8,10,15,0.9);
+  border: 1px solid var(--border); flex-wrap: wrap; align-items: center;
+}
+
+.mock-ctrl-btn {
+  font-size: 0.45rem; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.3rem 0.6rem; border: 1px solid var(--border); color: var(--dim);
+}
+
+.mock-ctrl-btn.active { border-color: var(--concept); color: var(--concept); }
+.mock-ctrl-btn.erase  { border-color: var(--event);   color: var(--event); }
+
+.mock-eraser-circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid var(--event);
+  background: rgba(232,114,74,0.08);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ── QUICK REF TABLE ───────────────────────────── */
+.ref-table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 2rem;
+  font-size: 0.85rem;
+}
+
+.ref-table th {
+  font-family: var(--ui); font-size: 0.5rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); padding: 0.6rem 1rem; text-align: left;
+  border-bottom: 2px solid var(--border);
+}
+
+.ref-table td {
+  padding: 0.7rem 1rem; border-bottom: 1px solid var(--border);
+  vertical-align: top; line-height: 1.5;
+  color: var(--soft);
+}
+
+.ref-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+.ref-key {
+  font-family: var(--mono); font-size: 0.65rem; color: var(--concept);
+  background: rgba(126,184,224,0.08); padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(126,184,224,0.2); white-space: nowrap;
+}
+
+/* ── ONTOLOGY LEGEND ───────────────────────────── */
+.onto-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+.onto-card {
+  background: var(--deep); padding: 1.2rem;
+}
+
+.onto-swatch {
+  width: 32px; height: 4px; border-radius: 2px; margin-bottom: 0.8rem;
+}
+
+.onto-name {
+  font-family: var(--display); font-size: 1rem; letter-spacing: 0.1em;
+  margin-bottom: 0.3rem;
+}
+
+.onto-def {
+  font-size: 0.8rem; line-height: 1.6; color: var(--dim);
+}
+
+/* ── PIPELINE ──────────────────────────────────── */
+.pipeline {
+  display: flex; gap: 0; margin-top: 2.5rem; flex-wrap: wrap;
+  border: 1px solid var(--border);
+}
+
+.pipe-step {
+  flex: 1; min-width: 150px;
+  padding: 1.2rem;
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+.pipe-step:last-child { border-right: none; }
+
+.pipe-num {
+  font-family: var(--display); font-size: 2rem; color: var(--border);
+  line-height: 1; margin-bottom: 0.5rem;
+}
+
+.pipe-title {
+  font-family: var(--display); font-size: 0.9rem; letter-spacing: 0.1em;
+  color: var(--white); margin-bottom: 0.3rem;
+}
+
+.pipe-desc {
+  font-size: 0.75rem; color: var(--dim); line-height: 1.5;
+}
+
+.pipe-arrow {
+  position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: 0.7rem; z-index: 1;
+  background: var(--deep); padding: 0 2px;
+}
+
+/* ── FOOTER ────────────────────────────────────── */
+footer {
+  position: relative; z-index: 10;
+  padding: 4rem 2rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.footer-logo {
+  font-family: var(--display);
+  font-size: 2rem; letter-spacing: 0.2em;
+  color: var(--muted); margin-bottom: 1rem;
+}
+
+.footer-logo span { color: var(--border); }
+
+.footer-links {
+  display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.footer-links a {
+  font-family: var(--ui); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--dim); text-decoration: none; transition: color 0.2s;
+}
+
+.footer-links a:hover { color: var(--concept); }
+
+.footer-credit {
+  font-size: 0.8rem; color: var(--muted); line-height: 1.8;
+}
+
+/* ── HIPPOCAMPUS SECTION ───────────────────────── */
+.hippo-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  margin-top: 2.5rem;
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .hippo-two-col { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+.hippo-body {
+  font-size: 1.05rem; line-height: 1.85; color: var(--soft);
+}
+
+.hippo-body p { margin-bottom: 1.1rem; }
+.hippo-body p:last-child { margin-bottom: 0; }
+
+.hippo-body strong { color: var(--bright); font-weight: 600; }
+
+.pull-quote {
+  border-left: 2px solid var(--concept);
+  padding: 1rem 1.2rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--bright);
+  line-height: 1.7;
+  background: rgba(126,184,224,0.04);
+}
+
+.cite-list {
+  list-style: none;
+  margin-top: 2rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.2rem;
+}
+
+.cite-list li {
+  font-family: var(--ui);
+  font-size: 0.5rem; letter-spacing: 0.05em;
+  color: var(--muted); line-height: 1.6;
+}
+
+.cite-list a { color: var(--dim); text-decoration: none; }
+.cite-list a:hover { color: var(--concept); }
+
+.cite-num {
+  color: var(--concept); margin-right: 0.4rem;
+}
+
+sup {
+  font-family: var(--ui); font-size: 0.55rem; letter-spacing: 0;
+  color: var(--concept); vertical-align: super;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 1.2rem;
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 1.5rem;
+}
+
+.tl-item {}
+
+.tl-date {
+  font-family: var(--display); font-size: 0.75rem; letter-spacing: 0.15em;
+  color: var(--concept); margin-bottom: 0.25rem;
+}
+
+.tl-text {
+  font-size: 0.9rem; line-height: 1.7; color: var(--dim);
+}
+
+.tl-text strong { color: var(--soft); }
+
+/* ── SCROLL ANIMATIONS ─────────────────────────── */
+.fade-in {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible {
+  opacity: 1; transform: translateY(0);
+}
+
+/* ── RESPONSIVE ────────────────────────────────── */
+@media (max-width: 700px) {
+  .step {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .step:nth-child(even) .step-visual { order: 0; }
+  .pipeline { flex-direction: column; }
+  .pipe-step { border-right: none; border-bottom: 1px solid var(--border); }
+  .pipe-arrow { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Starfield canvas -->
+<canvas id="starfield"></canvas>
+
+<!-- ════════════════ HERO ════════════════ -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-beams"></div>
+
+  <div class="wordmark">
+    <span class="wordmark-main">SEMANTIC</span>
+    <span class="wordmark-sub">FIELD</span>
+  </div>
+
+  <div class="hero-tagline">Collective Memory · Spatial Knowledge · Place-Anchored Mind</div>
+
+  <p class="hero-desc">
+    Load a 3D scan of any place. Converse with an AI on a Solari flip-board.
+    Group words by color, draw edges between ideas, and send them into space as
+    annotated nodes — building a shared memory palace one session at a time.
+  </p>
+
+  <div class="hero-badges">
+    <span class="badge badge-event">Place</span>
+    <span class="badge badge-concept">Meaning</span>
+    <span class="badge badge-process">Memory</span>
+    <span class="badge badge-relation">Edge</span>
+    <span class="badge badge-artifact">Artifact</span>
+  </div>
+
+  <div class="cta-row">
+    <a href="https://innercartography.github.io/semanticfields/semantic-splat.html" class="btn-primary">Launch App →</a>
+    <a href="#tutorial" class="btn-ghost">Read Tutorial ↓</a>
+  </div>
+
+  <div class="scroll-hint">↓ scroll to explore</div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ WHAT IS IT ════════════════ -->
+<section id="about" class="fade-in">
+  <div class="section-eyebrow">What is Semantic Field</div>
+  <div class="section-title">A <span>collective</span> memory palace</div>
+  <p class="section-body">
+    The hippocampus doesn't just store memories — it builds spatial maps. Every memory palace
+    tradition from Simonides to Giordano Bruno exploited this: anchor ideas to places, and the
+    brain retrieves them like a route. Semantic Field makes this literal. Load any real 3D scan,
+    converse with an AI, group the words that matter, connect them with edges, and place them
+    in space — anchored to the geometry that already lives in your body.
+  </p>
+
+  <div class="overview-grid">
+    <div class="overview-card">
+      <div class="oc-icon">◈</div>
+      <div class="oc-title">Solari Lobby</div>
+      <div class="oc-desc">Type into the flip-board input. The AI responds in three flipping lines. Words and phrases auto-land on your canvas.</div>
+    </div>
+    <div class="overview-card">
+      <div class="oc-icon">⬡</div>
+      <div class="oc-title">3D Scene</div>
+      <div class="oc-desc">Load real .PLY point clouds. Orbit, pan, zoom. Place annotation nodes directly on objects at their 3D coordinates.</div>
+    </div>
+    <div class="overview-card">
+      <div class="oc-icon">▣</div>
+      <div class="oc-title">Color Canvas</div>
+      <div class="oc-desc">Words and phrases land here. Group them by color — no meaning required. Add meaning later via double-click.</div>
+    </div>
+    <div class="overview-card">
+      <div class="oc-icon">⌁</div>
+      <div class="oc-title">Edges</div>
+      <div class="oc-desc">Connect nodes with labeled edges in 3D space. Draw a triad, a square, a constellation — the graph is yours to shape.</div>
+    </div>
+    <div class="overview-card">
+      <div class="oc-icon">↺</div>
+      <div class="oc-title">Meaning Layers</div>
+      <div class="oc-desc">Each node holds up to 6 meaning layers — literal, cultural, contested, speculative. Attest, contest, co-evolve with AI.</div>
+    </div>
+    <div class="overview-card">
+      <div class="oc-icon">⟳</div>
+      <div class="oc-title">GitHub Sync</div>
+      <div class="oc-desc">Save a world.json file. Commit it to a shared repo. Collaborators pull and load — merges are non-destructive, per-node.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ TUTORIAL ════════════════ -->
+<section id="tutorial">
+  <div class="section-eyebrow">Step-by-step guide</div>
+  <div class="section-title">How to <span>use it</span></div>
+  <p class="section-body">
+    Start with a question. End with a memory palace. Here's the path.
+  </p>
+
+  <div class="steps-container">
+
+    <!-- ── STEP 1: LOBBY ── -->
+    <div class="step">
+      <div class="step-text">
+        <div class="step-num">Step 01 / 06</div>
+        <div class="step-title">The <span>Solari</span> Lobby</div>
+        <p class="step-desc">
+          The entry point. Type any question, concept, or provocation into the input field
+          below the board. Hit Enter or SEND. The AI responds on the flip-board — letters
+          scrambling into place like an airport departures sign. Response words and
+          <em>recognized phrases</em> drop automatically onto your canvas.
+        </p>
+        <ul class="step-tips">
+          <li>Multi-word phrases that belong together arrive as a single italic chip on the canvas</li>
+          <li>Click any word on the board directly to add it to the canvas manually</li>
+          <li>The board remembers conversation history — build on previous exchanges</li>
+          <li>Try asking it to define a place, a feeling, a tension, or a contradiction</li>
+          <li>Hit <strong style="color:var(--bright)">Enter Scene →</strong> when you're ready to move into 3D space</li>
+        </ul>
+      </div>
+      <div class="step-visual">
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot" style="background:var(--event)"></div>
+            <div class="mockup-dot" style="background:var(--artifact)"></div>
+            <div class="mockup-dot" style="background:var(--process)"></div>
+            <div class="mockup-title">SEMANTIC FIELD — LOBBY</div>
+          </div>
+          <div class="mockup-body" style="padding:0.8rem">
+            <div class="flip-board-mock">
+              <div class="flip-row-mock">
+                <div class="flip-char-mock lit">M</div><div class="flip-char-mock lit">E</div><div class="flip-char-mock lit">A</div><div class="flip-char-mock lit">N</div><div class="flip-char-mock lit">I</div><div class="flip-char-mock lit">N</div><div class="flip-char-mock lit">G</div>
+                <div class="flip-char-mock sp"></div>
+                <div class="flip-char-mock lit">I</div><div class="flip-char-mock lit">S</div>
+                <div class="flip-char-mock sp"></div>
+                <div class="flip-char-mock lit">N</div><div class="flip-char-mock lit">E</div><div class="flip-char-mock lit">G</div><div class="flip-char-mock lit">O</div><div class="flip-char-mock lit">T</div><div class="flip-char-mock lit">I</div><div class="flip-char-mock lit">A</div><div class="flip-char-mock lit">T</div><div class="flip-char-mock lit">E</div><div class="flip-char-mock lit">D</div>
+              </div>
+              <div class="flip-row-mock">
+                <div class="flip-char-mock">N</div><div class="flip-char-mock">O</div><div class="flip-char-mock">T</div>
+                <div class="flip-char-mock sp"></div>
+                <div class="flip-char-mock">F</div><div class="flip-char-mock">I</div><div class="flip-char-mock">X</div><div class="flip-char-mock">E</div><div class="flip-char-mock">D</div>
+                <div class="flip-char-mock sp"></div>
+                <div class="flip-char-mock">·</div>
+                <div class="flip-char-mock sp"></div>
+                <div class="flip-char-mock">E</div><div class="flip-char-mock">V</div><div class="flip-char-mock">O</div><div class="flip-char-mock">L</div><div class="flip-char-mock">V</div><div class="flip-char-mock">I</div><div class="flip-char-mock">N</div><div class="flip-char-mock">G</div>
+              </div>
+              <div class="flip-row-mock">
+                <div class="flip-char-mock lit">B</div><div class="flip-char-mock lit">E</div><div class="flip-char-mock lit">G</div><div class="flip-char-mock lit">I</div><div class="flip-char-mock lit">N</div>
+                <div class="flip-char-mock sp"></div>
+                <div class="flip-char-mock lit">A</div><div class="flip-char-mock lit">N</div><div class="flip-char-mock lit">Y</div><div class="flip-char-mock lit">W</div><div class="flip-char-mock lit">H</div><div class="flip-char-mock lit">E</div><div class="flip-char-mock lit">R</div><div class="flip-char-mock lit">E</div>
+              </div>
+            </div>
+            <div class="mock-input-row">
+              <div class="mock-input">What does this space mean to you?</div>
+              <div class="mock-send">SEND</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--ui);font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-align:center">
+          ↑ Click any word on the board to add it to your palette
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: UPLOAD PLY ── -->
+    <div class="step">
+      <div class="step-text">
+        <div class="step-num">Step 02 / 06</div>
+        <div class="step-title">Load your <span>Point Cloud</span></div>
+        <p class="step-desc">
+          Drop a <code style="color:var(--concept);font-family:var(--mono)">.ply</code> file
+          onto the app or use the file button. Exported from Lixel Color Studio, Polycam,
+          RealityCapture, or any photogrammetry tool. The parser handles both ASCII and binary PLY.
+        </p>
+        <ul class="step-tips">
+          <li>Lixel exports are usually Z-up — auto-corrected on load</li>
+          <li>Polycam and Gaussian splat files use spherical harmonic coefficients for color — handled automatically</li>
+          <li>Use the <strong style="color:var(--bright)">pts slider</strong> in the toolbar to tune point density vs. crispness</li>
+          <li>Double-click the canvas to reset the view at any time</li>
+          <li>Up to 1 million points rendered live in the browser</li>
+        </ul>
+      </div>
+      <div class="step-visual">
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot" style="background:var(--process)"></div>
+            <div class="mockup-dot" style="background:var(--process);opacity:0.4"></div>
+            <div class="mockup-title">SCENE VIEW · PLY LOADED</div>
+          </div>
+          <div class="mock-scene">
+            <!-- Particle cloud simulation -->
+            <svg width="100%" height="220" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0">
+              <defs>
+                <radialGradient id="cg1" cx="50%" cy="60%"><stop offset="0%" stop-color="#7eb8e0" stop-opacity="0.9"/><stop offset="100%" stop-color="#7eb8e0" stop-opacity="0"/></radialGradient>
+                <radialGradient id="cg2" cx="50%" cy="60%"><stop offset="0%" stop-color="#6bcf9e" stop-opacity="0.8"/><stop offset="100%" stop-color="#6bcf9e" stop-opacity="0"/></radialGradient>
+                <radialGradient id="cg3" cx="50%" cy="60%"><stop offset="0%" stop-color="#e8724a" stop-opacity="0.7"/><stop offset="100%" stop-color="#e8724a" stop-opacity="0"/></radialGradient>
+              </defs>
+              <!-- Ground plane -->
+              <rect x="0" y="175" width="100%" height="45" fill="#0a0d12"/>
+              <!-- Grid lines on ground -->
+              <line x1="0" y1="176" x2="100%" y2="176" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="60" y1="176" x2="30" y2="220" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="120" y1="176" x2="90" y2="220" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="180" y1="176" x2="150" y2="220" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="240" y1="176" x2="210" y2="220" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="300" y1="176" x2="270" y2="220" stroke="#1e2d45" stroke-width="0.5"/>
+              <!-- Dense point cloud mass — building-like shape -->
+              <ellipse cx="160" cy="100" rx="90" ry="60" fill="url(#cg1)" opacity="0.5"/>
+              <ellipse cx="130" cy="90" rx="50" ry="40" fill="url(#cg2)" opacity="0.4"/>
+              <ellipse cx="190" cy="110" rx="40" ry="30" fill="url(#cg3)" opacity="0.3"/>
+              <!-- Scattered points -->
+              <g fill="#7eb8e0" opacity="0.7">
+                <circle cx="80" cy="90" r="0.8"/><circle cx="95" cy="75" r="1.2"/><circle cx="110" cy="68" r="0.7"/><circle cx="130" cy="62" r="1.0"/><circle cx="150" cy="58" r="0.9"/><circle cx="170" cy="60" r="1.1"/><circle cx="190" cy="65" r="0.8"/><circle cx="205" cy="72" r="1.0"/><circle cx="218" cy="82" r="0.7"/>
+                <circle cx="75" cy="105" r="0.9"/><circle cx="85" cy="118" r="1.1"/><circle cx="100" cy="125" r="0.8"/><circle cx="120" cy="130" r="1.2"/><circle cx="145" cy="132" r="0.7"/><circle cx="165" cy="128" r="1.0"/><circle cx="185" cy="122" r="0.9"/><circle cx="200" cy="112" r="1.1"/>
+              </g>
+              <g fill="#6bcf9e" opacity="0.6">
+                <circle cx="90" cy="98" r="1.0"/><circle cx="105" cy="85" r="0.8"/><circle cx="125" cy="78" r="1.2"/><circle cx="145" cy="72" r="0.9"/><circle cx="162" cy="75" r="1.1"/><circle cx="178" cy="80" r="0.8"/><circle cx="195" cy="90" r="1.0"/><circle cx="208" cy="100" r="0.7"/>
+              </g>
+              <g fill="#f0cc6a" opacity="0.5">
+                <circle cx="115" cy="95" r="1.0"/><circle cx="138" cy="88" r="0.9"/><circle cx="158" cy="90" r="1.1"/><circle cx="175" cy="95" r="0.8"/><circle cx="100" cy="108" r="0.9"/><circle cx="128" cy="112" r="1.2"/>
+              </g>
+            </svg>
+            <!-- Controls bar at bottom -->
+            <div style="position:absolute;bottom:0.5rem;left:50%;transform:translateX(-50%)">
+              <div class="mock-controls">
+                <span class="mock-ctrl-btn active">⟳ Orbit</span>
+                <span class="mock-ctrl-btn">⊕ Place</span>
+                <span class="mock-ctrl-btn erase">◌ Erase</span>
+                <span style="font-size:0.4rem;color:var(--muted);padding:0 0.3rem">pts ▬▬●───</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--ui);font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-align:center">
+          ↑ Real point cloud with ground plane · orbit / zoom / pan
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: PLACE NODES ── -->
+    <div class="step">
+      <div class="step-text">
+        <div class="step-num">Step 03 / 06</div>
+        <div class="step-title">Place <span>Semantic</span> Nodes</div>
+        <p class="step-desc">
+          Switch to <strong style="color:var(--bright)">⊕ Place Node</strong> mode and click
+          anywhere in the scene to drop an annotation node at that 3D position. A modal opens
+          immediately for you to name it and begin annotating.
+        </p>
+        <ul class="step-tips">
+          <li>In Place mode, click any point in the scene — a node appears at that 3D world coordinate</li>
+          <li>Switch back to Orbit mode and <strong style="color:var(--bright)">drag the ring</strong> of any node to reposition it precisely</li>
+          <li>Nodes scale with depth — closer nodes appear larger, distant ones fade</li>
+          <li>Right-click any node to delete it</li>
+          <li>Use <strong style="color:var(--bright)">+ Node</strong> in the toolbar to add a node at the scene center</li>
+        </ul>
+      </div>
+      <div class="step-visual">
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot" style="background:var(--concept)"></div>
+            <div class="mockup-title">3D SCENE · ANNOTATION NODES</div>
+          </div>
+          <div class="mock-scene" style="min-height:240px">
+            <svg width="100%" height="240" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0">
+              <rect x="0" y="195" width="100%" height="45" fill="#0a0d12"/>
+              <line x1="0" y1="196" x2="100%" y2="196" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="60" y1="196" x2="30" y2="240" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="130" y1="196" x2="100" y2="240" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="200" y1="196" x2="170" y2="240" stroke="#1e2d45" stroke-width="0.5"/>
+              <line x1="270" y1="196" x2="240" y2="240" stroke="#1e2d45" stroke-width="0.5"/>
+              <ellipse cx="155" cy="110" rx="85" ry="55" fill="#7eb8e0" fill-opacity="0.08"/>
+              <g fill="#7eb8e0" opacity="0.5">
+                <circle cx="90" cy="98" r="0.9"/><circle cx="115" cy="82" r="1.1"/><circle cx="140" cy="75" r="0.8"/><circle cx="165" cy="78" r="1.0"/><circle cx="188" cy="88" r="0.9"/><circle cx="205" cy="102" r="1.1"/><circle cx="85" cy="115" r="0.8"/><circle cx="108" cy="125" r="1.0"/><circle cx="135" cy="130" r="0.9"/><circle cx="162" cy="126" r="1.1"/><circle cx="185" cy="118" r="0.8"/>
+              </g>
+              <g fill="#6bcf9e" opacity="0.4">
+                <circle cx="100" cy="90" r="1.0"/><circle cx="125" cy="85" r="0.8"/><circle cx="150" cy="82" r="1.1"/><circle cx="175" cy="88" r="0.9"/><circle cx="195" cy="98" r="1.0"/>
+              </g>
+              <!-- Node 1: concept -->
+              <circle cx="120" cy="88" r="14" fill="none" stroke="#7eb8e0" stroke-width="1.5" opacity="0.8"/>
+              <circle cx="120" cy="88" r="4" fill="#7eb8e0"/>
+              <circle cx="120" cy="88" r="18" fill="none" stroke="#7eb8e0" stroke-width="0.4" opacity="0.3" stroke-dasharray="3 2"/>
+              <rect x="90" y="106" width="60" height="12" fill="#07090e" fill-opacity="0.9"/>
+              <rect x="90" y="106" width="60" height="12" fill="none" stroke="#7eb8e0" stroke-width="0.7"/>
+              <text x="120" y="115" text-anchor="middle" fill="#7eb8e0" font-size="5" font-family="monospace" letter-spacing="0.5">THE ARCHIVE</text>
+              <!-- Node 2: event (further, smaller) -->
+              <circle cx="200" cy="105" r="10" fill="none" stroke="#e8724a" stroke-width="1.2" opacity="0.7"/>
+              <circle cx="200" cy="105" r="3" fill="#e8724a"/>
+              <rect x="175" y="119" width="50" height="11" fill="#07090e" fill-opacity="0.9"/>
+              <rect x="175" y="119" width="50" height="11" fill="none" stroke="#e8724a" stroke-width="0.7"/>
+              <text x="200" y="127" text-anchor="middle" fill="#e8724a" font-size="4.5" font-family="monospace" letter-spacing="0.5">THRESHOLD</text>
+              <!-- Node 3: process (close, large) -->
+              <circle cx="75" cy="130" r="17" fill="none" stroke="#6bcf9e" stroke-width="1.8" opacity="0.9"/>
+              <circle cx="75" cy="130" r="5" fill="#6bcf9e"/>
+              <circle cx="75" cy="130" r="22" fill="none" stroke="#6bcf9e" stroke-width="0.4" opacity="0.3" stroke-dasharray="3 2"/>
+              <text x="75" y="153" text-anchor="middle" fill="#6bcf9e" font-size="5" font-family="monospace" letter-spacing="0.5">FLOW</text>
+              <!-- drag hint arrow -->
+              <path d="M 120 72 Q 130 58 145 65" fill="none" stroke="#7eb8e0" stroke-width="0.8" stroke-dasharray="2 2" opacity="0.5"/>
+              <text x="148" y="63" fill="#7eb8e0" font-size="4" font-family="monospace" opacity="0.6">drag to move</text>
+            </svg>
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--ui);font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-align:center">
+          ↑ Nodes depth-scale with distance · drag ring to reposition
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: ANNOTATE ── -->
+    <div class="step">
+      <div class="step-text">
+        <div class="step-num">Step 04 / 06</div>
+        <div class="step-title">Annotate <span>Meaning</span> Layers</div>
+        <p class="step-desc">
+          Click any node to open the Meaning Editor. Each object holds up to
+          6 named layers — Literal, Cultural, Contested, Speculative, Poetic, Technical.
+          Layer through them like tuning a radio. Let the AI co-evolve any layer.
+        </p>
+        <ul class="step-tips">
+          <li>Click a layer tab to switch to it — write freely in the text area</li>
+          <li>Type in the <strong style="color:var(--bright)">Co-evolve with AI</strong> box to prompt the AI to refine that specific layer</li>
+          <li>Attest meanings: Affirm ✓ · Contest ✕ · Expand + · Ambiguous ~</li>
+          <li>Attach words from your palette directly into a layer</li>
+          <li>Add up to 6 layers per object — each layer is independently versioned</li>
+        </ul>
+      </div>
+      <div class="step-visual">
+        <div class="mock-modal">
+          <div class="mock-modal-header">
+            <div class="mock-type-pill" style="color:var(--concept);border-color:var(--concept)">Concept</div>
+            <div class="mock-obj-name">The Archive</div>
+          </div>
+          <div class="mock-layer-tabs">
+            <div class="mock-ltab active">◉ Literal</div>
+            <div class="mock-ltab filled">◉ Cultural</div>
+            <div class="mock-ltab">◌ Contested</div>
+            <div class="mock-ltab">◌ Speculative</div>
+            <div class="mock-ltab">◌ Poetic</div>
+            <div class="mock-ltab">◌ Technical</div>
+          </div>
+          <div class="mock-layer-body">
+            A physical repository of knowledge — dust, decay, and the slow
+            accumulation of things deemed worth preserving. The archive is
+            never neutral; its selection is always a political act.
+          </div>
+          <div class="mock-attest-row">
+            <span style="font-size:0.45rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-right:0.3rem">Attest:</span>
+            <div class="mock-attest affirm">✓ Affirm <span style="color:var(--muted)">5</span></div>
+            <div class="mock-attest contest">✕ Contest <span style="color:var(--muted)">2</span></div>
+            <div class="mock-attest">+ Expand <span style="color:var(--muted)">3</span></div>
+            <div class="mock-attest">~ Ambiguous <span style="color:var(--muted)">1</span></div>
+          </div>
+          <div class="mock-llm-row">
+            <div class="mock-llm-input">Expand the contested dimension — who decides?</div>
+            <div class="mock-llm-send">Evolve</div>
+          </div>
+          <div style="padding:0.4rem 0.8rem;display:flex;justify-content:space-between;border-top:1px solid var(--border)">
+            <span style="font-size:0.45rem;color:var(--muted);letter-spacing:0.08em">3 contributors · 7 revisions</span>
+            <span style="font-family:var(--display);font-size:0.7rem;color:var(--concept);letter-spacing:0.1em">Crystallize Node →</span>
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--ui);font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-align:center">
+          ↑ 6 named layers · attestation · AI co-evolution · crystallize to graph
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: CANVAS + EDGES + SYNC ── -->
+    <div class="step">
+      <div class="step-text">
+        <div class="step-num">Step 05 / 06</div>
+        <div class="step-title">Canvas, <span>Edges</span> &amp; Sync</div>
+        <p class="step-desc">
+          Words from the board land on the <strong style="color:var(--bright)">Canvas</strong> panel.
+          Group them by color — no meaning required. Add meaning later via double-click.
+          In the scene, use <strong style="color:var(--bright)">⌁ Connect</strong> mode to draw edges
+          between nodes. Save a world.json and commit it to a shared GitHub repo to sync with collaborators.
+        </p>
+        <ul class="step-tips">
+          <li>Click a token to select it (white outline), then click a color swatch to assign a group</li>
+          <li>Multi-word phrases from the AI arrive as a single italic chip — they're recognized units</li>
+          <li>Double-click any token to add an optional meaning label — visible in the 3D scene on hover</li>
+          <li>⌁ Connect mode: click node A → click node B → optionally type a relation label</li>
+          <li>Right-click any edge to remove it</li>
+          <li>⟳ Sync → Save world.json, commit, push. Collaborators pull and Load to receive your update</li>
+          <li>Loads merge non-destructively — newer revision wins, new nodes and edges are additive</li>
+        </ul>
+      </div>
+      <div class="step-visual">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+          <div>
+            <div style="font-family:var(--ui);font-size:0.45rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem">Canvas</div>
+            <div style="background:var(--deep);border:1px solid var(--border);padding:0.3rem">
+              <!-- Color swatches -->
+              <div style="display:flex;gap:0.3rem;padding:0.3rem;border-bottom:1px solid var(--border);margin-bottom:0.3rem;align-items:center">
+                <div style="width:14px;height:14px;background:var(--surface);border:1px solid var(--border);border-radius:2px"></div>
+                <div style="width:14px;height:14px;background:rgba(232,114,74,0.4);border:1px solid #e8724a88;border-radius:2px"></div>
+                <div style="width:14px;height:14px;background:rgba(126,184,224,0.4);border:1px solid #7eb8e088;border-radius:2px"></div>
+                <div style="width:14px;height:14px;background:rgba(107,207,158,0.4);border:1px solid #6bcf9e88;border-radius:2px"></div>
+                <div style="width:14px;height:14px;background:rgba(201,159,232,0.4);border:1px solid #c99fe888;border-radius:2px"></div>
+                <div style="width:14px;height:14px;background:rgba(240,204,106,0.4);border:1px solid #f0cc6a88;border-radius:2px"></div>
+                <span style="font-size:0.4rem;color:var(--muted);margin-left:0.2rem">select → color</span>
+              </div>
+              <div class="mock-tokens">
+                <div class="mock-token" style="background:rgba(232,114,74,0.12);border-color:rgba(232,114,74,0.5);color:#e8b09a">threshold</div>
+                <div class="mock-token" style="background:rgba(232,114,74,0.12);border-color:rgba(232,114,74,0.5);color:#e8b09a">collapse</div>
+                <div class="mock-token" style="background:rgba(126,184,224,0.12);border-color:rgba(126,184,224,0.5);color:#a8d4ee">memory palace</div>
+                <div class="mock-token" style="background:rgba(126,184,224,0.12);border-color:rgba(126,184,224,0.5);color:#a8d4ee;font-style:italic">collective memory</div>
+                <div class="mock-token mt-concept">archive</div>
+                <div class="mock-token mt-process">dissolve</div>
+              </div>
+              <div style="margin:0.4rem 0.3rem;padding:0.4rem;background:rgba(126,184,224,0.06);border:1px solid var(--concept);text-align:center;font-family:var(--display);font-size:0.6rem;letter-spacing:0.12em;color:var(--concept)">◈ SEND TO SCENE</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:var(--ui);font-size:0.45rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:0.4rem">World Sync</div>
+            <div style="background:var(--deep);border:1px solid var(--border);padding:0.5rem;font-family:var(--ui);font-size:0.42rem;line-height:1.9;color:var(--dim)">
+              <span style="color:var(--concept)">1</span> Save world.json<br>
+              <span style="color:var(--concept)">2</span> <code style="color:var(--soft);font-size:0.95em">git add world.json</code><br>
+              <span style="color:var(--concept)">  </span> <code style="color:var(--soft);font-size:0.95em">git commit -m "..."</code><br>
+              <span style="color:var(--concept)">  </span> <code style="color:var(--soft);font-size:0.95em">git push</code><br>
+              <span style="color:var(--concept)">3</span> Collaborator: <code style="color:var(--soft);font-size:0.95em">git pull</code><br>
+              <span style="color:var(--concept)">4</span> Load world.json in app<br>
+              <span style="color:var(--muted);font-style:italic">Merges non-destructively.</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--ui);font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-align:center">
+          ↑ Color groups · phrase chips · git-based world sync
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 6: ERASE + CLEAN ── -->
+    <div class="step">
+      <div class="step-text">
+        <div class="step-num">Step 06 / 06</div>
+        <div class="step-title">Clean with <span>Erase</span> Mode</div>
+        <p class="step-desc">
+          Raw scans always have noise — floating points, background clutter, scan artifacts.
+          Switch to Erase mode and paint over any points to remove them. Each stroke is
+          one undo step.
+        </p>
+        <ul class="step-tips">
+          <li>Click <strong style="color:var(--event)">◌ Erase</strong> in the toolbar — a circular brush cursor appears</li>
+          <li>Paint over noisy or unwanted points to hide them</li>
+          <li>Adjust the <strong style="color:var(--bright)">brush slider</strong> for fine or broad strokes</li>
+          <li>Hit <strong style="color:var(--bright)">↩ Undo</strong> to restore the last stroke's points exactly</li>
+          <li>Erased points are non-destructive — hidden, not deleted — until you export</li>
+        </ul>
+      </div>
+      <div class="step-visual">
+        <div class="mockup">
+          <div class="mockup-bar">
+            <div class="mockup-dot" style="background:var(--event)"></div>
+            <div class="mockup-title">ERASE MODE ACTIVE</div>
+          </div>
+          <div class="mock-scene" style="min-height:200px">
+            <svg width="100%" height="200" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0">
+              <rect x="0" y="170" width="100%" height="30" fill="#0a0d12"/>
+              <line x1="0" y1="171" x2="100%" y2="171" stroke="#1e2d45" stroke-width="0.5"/>
+              <!-- Dense point cloud -->
+              <g fill="#7eb8e0" opacity="0.7">
+                <circle cx="80" cy="80" r="1.1"/><circle cx="95" cy="65" r="0.9"/><circle cx="115" cy="58" r="1.2"/><circle cx="140" cy="55" r="0.8"/><circle cx="162" cy="58" r="1.0"/><circle cx="182" cy="65" r="0.9"/><circle cx="198" cy="78" r="1.1"/>
+                <circle cx="75" cy="95" r="0.9"/><circle cx="90" cy="108" r="1.1"/><circle cx="110" cy="118" r="0.8"/><circle cx="135" cy="122" r="1.0"/><circle cx="160" cy="118" r="0.9"/><circle cx="182" cy="108" r="1.1"/><circle cx="198" cy="95" r="0.8"/>
+              </g>
+              <g fill="#6bcf9e" opacity="0.6">
+                <circle cx="100" cy="88" r="1.0"/><circle cx="122" cy="75" r="0.9"/><circle cx="148" cy="72" r="1.1"/><circle cx="170" cy="80" r="0.8"/>
+              </g>
+              <!-- Noise points being erased (faded/strikethrough) -->
+              <g fill="#e8724a" opacity="0.2">
+                <circle cx="55" cy="50" r="1.0"/><circle cx="45" cy="35" r="1.2"/><circle cx="68" cy="40" r="0.9"/><circle cx="58" cy="28" r="1.1"/><circle cx="40" cy="55" r="0.8"/>
+                <circle cx="220" cy="45" r="1.1"/><circle cx="235" cy="30" r="0.9"/><circle cx="245" cy="50" r="1.0"/><circle cx="228" cy="35" r="1.2"/>
+              </g>
+              <!-- Eraser brush circle -->
+              <circle cx="55" cy="42" r="28" fill="rgba(232,114,74,0.06)" stroke="#e8724a" stroke-width="1.2" stroke-dasharray="3 2"/>
+              <!-- Brush label -->
+              <text x="55" y="78" text-anchor="middle" fill="#e8724a" font-size="4.5" font-family="monospace" opacity="0.7">brush</text>
+            </svg>
+            <div style="position:absolute;bottom:0.4rem;left:50%;transform:translateX(-50%)">
+              <div class="mock-controls">
+                <span class="mock-ctrl-btn">⟳ Orbit</span>
+                <span class="mock-ctrl-btn">⊕ Place</span>
+                <span class="mock-ctrl-btn erase" style="border-width:1.5px">◌ Erase</span>
+                <span style="font-size:0.4rem;color:var(--event);padding:0 0.3rem">brush ──●──</span>
+                <span class="mock-ctrl-btn" style="color:var(--dim)">↩ Undo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:0.5rem;font-family:var(--ui);font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-align:center">
+          ↑ Paint to erase · brush size control · undo per stroke
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ QUICK REF ════════════════ -->
+<section class="fade-in">
+  <div class="section-eyebrow">Reference</div>
+  <div class="section-title">Controls &amp; <span>Shortcuts</span></div>
+
+  <table class="ref-table">
+    <thead>
+      <tr>
+        <th>Action</th>
+        <th>Input</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Orbit scene</td><td><span class="ref-key">Left drag</span></td><td>Horizontal + limited vertical — can't go below ground</td></tr>
+      <tr><td>Pan scene</td><td><span class="ref-key">Right drag</span> or <span class="ref-key">Alt + drag</span></td><td>Moves the orbit pivot point</td></tr>
+      <tr><td>Zoom</td><td><span class="ref-key">Scroll wheel</span></td><td>Exponential — works at any scale</td></tr>
+      <tr><td>Reset view</td><td><span class="ref-key">Double-click canvas</span></td><td>Returns to full-scene overview</td></tr>
+      <tr><td>Move a node</td><td><span class="ref-key">Drag the ring</span></td><td>Slides on camera-aligned plane in 3D</td></tr>
+      <tr><td>Open annotation editor</td><td><span class="ref-key">Click the ring</span></td><td>Short click = open, drag = move</td></tr>
+      <tr><td>Delete a node</td><td><span class="ref-key">Right-click node</span></td><td>Removes node and all its edges</td></tr>
+      <tr><td>Draw an edge</td><td><span class="ref-key">⌁ Connect → click A → click B</span></td><td>Optional relation label on confirm</td></tr>
+      <tr><td>Delete an edge</td><td><span class="ref-key">Right-click edge line</span></td><td>Immediate, no confirm</td></tr>
+      <tr><td>Add word to canvas</td><td><span class="ref-key">Click word on board</span></td><td>Or automatically from AI responses</td></tr>
+      <tr><td>Group canvas token</td><td><span class="ref-key">Click token → click color swatch</span></td><td>6 color groups, no type required</td></tr>
+      <tr><td>Label a token</td><td><span class="ref-key">Double-click token</span></td><td>Optional meaning — shown on hover in scene</td></tr>
+      <tr><td>Send canvas to scene</td><td><span class="ref-key">◈ Send to Scene</span></td><td>Commits canvas as a new graph node</td></tr>
+      <tr><td>Save world</td><td><span class="ref-key">⟳ Sync → Save world.json</span></td><td>API keys never written to file</td></tr>
+      <tr><td>Load / merge world</td><td><span class="ref-key">⟳ Sync → Load world.json</span></td><td>Non-destructive merge — newer revision wins</td></tr>
+      <tr><td>Erase points</td><td><span class="ref-key">◌ Erase mode → paint</span></td><td>Screen-space brush — hides, doesn't delete</td></tr>
+      <tr><td>Undo erase</td><td><span class="ref-key">↩ Undo button</span></td><td>One undo per stroke, stackable</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ ONTOLOGY ════════════════ -->
+<section class="fade-in">
+  <div class="section-eyebrow">Color &amp; Type</div>
+  <div class="section-title">Grouping <span>Without</span> Commitment</div>
+  <p class="section-body">
+    The canvas uses <strong>color groups</strong> as the primary organizing tool — assign any word
+    to a color without needing to name what the color means. Groups can be labeled later, or left
+    as pure visual clusters. When you send a canvas to the scene, the dominant group maps loosely
+    to one of five underlying node types — a scaffold you can override at any time.
+  </p>
+
+  <div class="onto-grid">
+    <div class="onto-card">
+      <div class="onto-swatch" style="background:var(--event)"></div>
+      <div class="onto-name" style="color:var(--event)">Event</div>
+      <div class="onto-def">Something that happened. A moment with before and after. Ruptures, transitions, occurrences in time.</div>
+    </div>
+    <div class="onto-card">
+      <div class="onto-swatch" style="background:var(--concept)"></div>
+      <div class="onto-name" style="color:var(--concept)">Concept / Lens</div>
+      <div class="onto-def">An interpretive frame. Ideas, categories, ways of seeing. The tools we bring to things rather than the things themselves.</div>
+    </div>
+    <div class="onto-card">
+      <div class="onto-swatch" style="background:var(--process)"></div>
+      <div class="onto-name" style="color:var(--process)">Process</div>
+      <div class="onto-def">How something unfolds. Cycles, transformations, flows, feedback loops — duration as the primary quality.</div>
+    </div>
+    <div class="onto-card">
+      <div class="onto-swatch" style="background:var(--relation)"></div>
+      <div class="onto-name" style="color:var(--relation)">Relation</div>
+      <div class="onto-def">A connection between things. Dependencies, analogies, tensions, affinities. Better expressed as an edge than a node.</div>
+    </div>
+    <div class="onto-card">
+      <div class="onto-swatch" style="background:var(--artifact)"></div>
+      <div class="onto-name" style="color:var(--artifact)">Artifact</div>
+      <div class="onto-def">A document, object, image, or medium. Things that carry meaning across time — containers, not just contents.</div>
+    </div>
+  </div>
+
+  <p class="section-body" style="margin-top:2rem;font-size:0.85rem;color:var(--dim)">
+    Types are a lightweight scaffold — useful for export and querying, but never a gate.
+    Start with color. Name it when it matters.
+  </p>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ PIPELINE ════════════════ -->
+<section class="fade-in">
+  <div class="section-eyebrow">Workflow</div>
+  <div class="section-title">The <span>Loop</span></div>
+  <p class="section-body">
+    Semantic Field is designed for iterative return. Each session leaves a world.json
+    that the next session — or next collaborator — picks up from.
+  </p>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="pipe-num">01</div>
+      <div class="pipe-title">Capture</div>
+      <div class="pipe-desc">Scan any space with Lixel, Polycam, RealityCapture, or any photogrammetry tool. Export as <code style="color:var(--concept);font-family:var(--mono)">.ply</code>.</div>
+      <div class="pipe-arrow">→</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">02</div>
+      <div class="pipe-title">Converse</div>
+      <div class="pipe-desc">Ask the Solari board questions about the space. Words and phrases land on the canvas automatically.</div>
+      <div class="pipe-arrow">→</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">03</div>
+      <div class="pipe-title">Group &amp; Connect</div>
+      <div class="pipe-desc">Color-group canvas tokens. Send them into 3D space as nodes. Draw edges between related nodes.</div>
+      <div class="pipe-arrow">→</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">04</div>
+      <div class="pipe-title">Annotate</div>
+      <div class="pipe-desc">Click any node to open its meaning editor. Layer literal, cultural, contested, speculative readings. Co-evolve with AI.</div>
+      <div class="pipe-arrow">→</div>
+    </div>
+    <div class="pipe-step">
+      <div class="pipe-num">05</div>
+      <div class="pipe-title">Sync</div>
+      <div class="pipe-desc">Save world.json. Commit to a shared GitHub repo. Collaborators pull, load, and add their own layers.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ HIPPOCAMPUS ════════════════ -->
+<section class="fade-in" id="hippocampus">
+  <div class="section-eyebrow">Why spatial memory matters</div>
+  <div class="section-title">The <span>Hippocampus</span> & the Map</div>
+
+  <div class="hippo-two-col">
+    <!-- LEFT: neuroscience + threats -->
+    <div>
+      <div class="hippo-body">
+        <p>
+          Deep in the medial temporal lobe sits the hippocampus — a seahorse-shaped
+          structure that is the brain's cartographer. It does not merely store memories;
+          it <strong>builds cognitive maps</strong>. O'Keefe & Nadel's 1978 discovery of
+          "place cells" — neurons that fire precisely when an animal occupies a specific location —
+          established that the hippocampus is a genuine spatial computing engine, earning
+          a Nobel Prize in 2014.<sup>1</sup>
+        </p>
+        <p>
+          The maps it builds are not limited to geography. The hippocampus encodes
+          <strong>relational structure</strong> of any kind: the layout of ideas,
+          the sequence of events, the connections between concepts. Memory palace
+          techniques work precisely because they hijack this spatial machinery —
+          anchoring abstract information to imagined places so the hippocampus
+          can retrieve it like a route.
+        </p>
+
+        <div class="pull-quote">
+          "The posterior hippocampi of taxi drivers were significantly larger
+          relative to those of control subjects… volume correlated with the
+          amount of time spent as a taxi driver."
+          <br><span style="font-size:0.8rem;color:var(--dim);font-style:normal">— Maguire et al., PNAS 2000 <sup>2</sup></span>
+        </div>
+
+        <p>
+          This plasticity cuts both ways. A 2020 study found that <strong>habitual GPS
+          use correlated with a steeper decline in hippocampal-dependent spatial
+          memory</strong> over three years — and importantly, the decline was observed
+          even in people who started with strong navigation ability, suggesting GPS
+          use caused the drop rather than selecting for weaker navigators.<sup>3</sup>
+        </p>
+        <p>
+          Chronic stress compounds the problem. The hippocampus is densely packed
+          with cortisol receptors. Sustained elevation of cortisol —
+          a hallmark of urban crowding, noise, social precarity, and nature
+          deprivation — suppresses adult neurogenesis in the dentate gyrus and
+          causes dendritic atrophy.<sup>4</sup> A study of 156,075 UK Biobank participants found
+          that urban environments characterized by social deprivation, air pollution,
+          and high density were associated with measurable brain volume differences
+          along stress-response pathways.<sup>5</sup> A separate analysis of ~1,000 adults
+          found that those living in the most disadvantaged neighborhoods had
+          hippocampal volumes equivalent to <strong>seven additional years of
+          age-related atrophy</strong>.<sup>6</sup>
+        </p>
+        <p style="font-size:0.85rem;color:var(--dim);font-style:italic">
+          Note: these studies show correlation, not simple causation — genetic
+          selection, socioeconomic confounds, and reverse causality are active areas
+          of debate. The mechanism (chronic stress → cortisol → hippocampal atrophy)
+          is well-established; the urban attribution requires care.
+        </p>
+      </div>
+
+      <ul class="cite-list">
+        <li><span class="cite-num">1</span> O'Keefe & Nadel, <em>The Hippocampus as a Cognitive Map</em>, Oxford UP, 1978. Nobel Prize in Physiology or Medicine 2014.</li>
+        <li><span class="cite-num">2</span> Maguire EA et al. "Navigation-related structural change in the hippocampi of taxi drivers." <em>PNAS</em> 97(8), 2000. <a href="https://doi.org/10.1073/pnas.070039597" target="_blank">doi:10.1073/pnas.070039597</a></li>
+        <li><span class="cite-num">3</span> Dahmani L & Bohbot VD. "Habitual use of GPS negatively impacts spatial memory during self-guided navigation." <em>Scientific Reports</em> 10, 2020. <a href="https://doi.org/10.1038/s41598-020-62877-0" target="_blank">doi:10.1038/s41598-020-62877-0</a></li>
+        <li><span class="cite-num">4</span> Kim EJ et al. "Stress effects on the hippocampus: a critical review." <em>Learn Mem</em> 22(9), 2015. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4561403/" target="_blank">PMC4561403</a></li>
+        <li><span class="cite-num">5</span> Sebert S et al. "Effects of urban living environments on mental health in adults." <em>Nature Medicine</em> 29, 2023. <a href="https://doi.org/10.1038/s41591-023-02365-w" target="_blank">doi:10.1038/s41591-023-02365-w</a></li>
+        <li><span class="cite-num">6</span> "Living in Disadvantaged Neighborhoods Linked to Brain Atrophy." <em>Medscape</em>, citing neighborhood ADI study, 2020.</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: history + modern approach -->
+    <div>
+      <div class="timeline">
+
+        <div class="tl-item">
+          <div class="tl-date">~477 BCE</div>
+          <div class="tl-text">
+            <strong>Simonides of Ceos</strong> survives a banquet hall collapse and identifies
+            the crushed victims by reconstructing their seating arrangement from memory.
+            He formalizes what he did as the <em>method of loci</em> — anchor
+            each thing to be remembered to a place in a known building, then walk
+            through it to recall in order.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">~55 BCE</div>
+          <div class="tl-text">
+            Cicero and the anonymous <em>Rhetorica ad Herennium</em> codify the
+            technique for Roman orators. Senators memorize entire speeches without notes
+            by walking imaginary architectures. The phrase <strong>"in the first place"</strong>
+            is a linguistic fossil from this practice.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">1582</div>
+          <div class="tl-text">
+            <strong>Giordano Bruno</strong> publishes <em>De Umbris Idearum</em> —
+            combining the classical method of loci with Hermetic cosmology and
+            rotating zodiacal memory wheels. Bruno's ambition was total:
+            a mnemonic system that encoded <em>all knowledge</em> as an architectural
+            theater of the mind. He was burned at the stake in 1600.
+            Historian Frances Yates recovered his work in
+            <em>The Art of Memory</em> (1966).<sup>†</sup>
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">1978</div>
+          <div class="tl-text">
+            O'Keefe & Nadel publish <em>The Hippocampus as a Cognitive Map</em>,
+            establishing that spatial memory has a physical substrate.
+            The memory palace is not a metaphor — it is a description of how
+            the brain actually works.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">2000</div>
+          <div class="tl-text">
+            Maguire et al. demonstrate that London taxi drivers grow their posterior
+            hippocampus through years of active navigation. The brain is
+            <strong>plastic in response to spatial practice</strong> — it expands
+            to accommodate the map.
+          </div>
+        </div>
+
+        <div class="tl-item">
+          <div class="tl-date">Now</div>
+          <div class="tl-text">
+            <strong>XR + Gaussian splats</strong> make Bruno's memory theater
+            literal. A photorealistic 3D scan of any space becomes a navigable
+            knowledge structure — place cells fire in virtual environments just
+            as they do in physical ones. Semantic annotations anchored to real
+            geometry create <strong>spatially-indexed knowledge graphs</strong>
+            shareable across any device. The map travels with the space.
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:2rem;padding:1rem;border:1px solid var(--border);background:rgba(126,184,224,0.03)">
+        <div style="font-family:var(--ui);font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--concept);margin-bottom:0.6rem">The Map is Never the Territory</div>
+        <p style="font-size:0.9rem;line-height:1.75;color:var(--dim)">
+          Alfred Korzybski's maxim — coined 1931 — is the permanent disclaimer on
+          any knowledge system. No map is complete. Every annotation carries its
+          author's blind spots, the period's assumptions, the language's limits.
+          But sharing and <em>refining</em> maps between people with different
+          vantage points is the closest collective process we have to becoming
+          <strong style="color:var(--soft)">less wrong together</strong>.
+          The semantic field is not truth — it is a convergence process.
+        </p>
+      </div>
+
+      <div style="margin-top:1rem;padding:1rem;border:1px solid var(--border);background:rgba(240,204,106,0.03)">
+        <div style="font-family:var(--ui);font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--artifact);margin-bottom:0.6rem">On Cyphers</div>
+        <p style="font-size:0.9rem;line-height:1.75;color:var(--dim)">
+          A cipher is a systematic substitution: replace each element of a message
+          with a symbol from a chosen alphabet. Memory palaces work identically —
+          replace each idea with a vivid image placed in a location. The <em>code</em>
+          is spatial. Semantic Field extends this: each node is a cypher unit,
+          its meaning layers the key, its attestations the checksum.
+          A shared knowledge graph is a collectively-legible cipher for
+          a shared world.
+        </p>
+      </div>
+
+      <div style="margin-top:0.8rem;font-family:var(--ui);font-size:0.45rem;color:var(--muted);letter-spacing:0.06em;line-height:1.6">
+        <span class="cite-num">†</span> Yates FA. <em>The Art of Memory</em>. Routledge, 1966. Modern Library list of 100 Best Nonfiction Books.
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ════════════════ GITHUB CTA ════════════════ -->
+<section class="fade-in" style="text-align:center;padding:5rem 2rem">
+  <div class="section-eyebrow" style="text-align:center">Open Source</div>
+  <div class="section-title" style="text-align:center">Single <span>HTML</span> file</div>
+  <p class="section-body" style="margin:0 auto 2rem;text-align:center">
+    The entire app — 3D point cloud engine, PLY parser, Solari board, color canvas,
+    edge graph, meaning layers, and world sync — ships as one self-contained HTML file.
+    No build step. No server. Drop it anywhere. Fork it freely.
+  </p>
+  <div class="cta-row" style="justify-content:center">
+    <a href="https://innercartography.github.io/semanticfields/semantic-splat.html" class="btn-primary">Launch Semantic Field →</a>
+    <a href="https://github.com/innercartography/semanticfields" class="btn-ghost">View on GitHub ↗</a>
+  </div>
+  <div style="margin-top:2.5rem;font-family:var(--ui);font-size:0.55rem;letter-spacing:0.12em;color:var(--muted)">
+    Requires: modern browser · Claude.ai or Anthropic API key for AI features · .PLY file for 3D scene (demo scene included)
+  </div>
+</section>
+
+<!-- ════════════════ FOOTER ════════════════ -->
+<footer>
+  <div class="footer-logo">SEMANTIC<span>FIELD</span></div>
+  <div class="footer-links">
+    <a href="https://innercartography.github.io/semanticfields/semantic-splat.html">Launch App</a>
+    <a href="#tutorial">Tutorial</a>
+    <a href="#hippocampus">Why It Matters</a>
+    <a href="#about">About</a>
+    <a href="https://github.com">GitHub</a>
+  </div>
+  <div class="footer-credit">
+    Built with Three.js · Claude AI · GitHub world sync<br>
+    A spatial memory tool for collective meaning-making
+  </div>
+</footer>
+
+<script>
+// ── Starfield ──────────────────────────────────────────────────────────
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+
+function initStars() {
+  stars = Array.from({ length: 180 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.2 + 0.2,
+    a: Math.random() * 0.6 + 0.1,
+    speed: Math.random() * 0.015 + 0.005,
+    twinkle: Math.random() * Math.PI * 2,
+  }));
+}
+
+function drawStars(t) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(s => {
+    s.twinkle += s.speed;
+    const alpha = s.a * (0.5 + 0.5 * Math.sin(s.twinkle));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(189,216,238,${alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+
+resizeCanvas();
+initStars();
+requestAnimationFrame(drawStars);
+window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+
+// ── Scroll reveal ──────────────────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.step, .fade-in').forEach(el => observer.observe(el));
+
+// ── Flip board animation on hero ──────────────────────────────────────
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·—';
+document.querySelectorAll('.flip-char-mock').forEach(el => {
+  if (!el.textContent.trim()) return;
+  const finalChar = el.textContent;
+  let count = 0;
+  const max = 6 + Math.floor(Math.random() * 8);
+  const delay = Math.random() * 1200;
+  setTimeout(() => {
+    const iv = setInterval(() => {
+      if (count++ >= max) { clearInterval(iv); el.textContent = finalChar; return; }
+      el.textContent = CHARS[Math.floor(Math.random() * CHARS.length)];
+    }, 50);
+  }, delay);
+});
+</script>
+</body>
+</html>
